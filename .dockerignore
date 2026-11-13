@@ -1,0 +1,21 @@
+# Only what the image build needs (see Dockerfile).
+**/node_modules
+**/dist
+**/coverage
+**/*.tsbuildinfo
+**/.env
+**/.env.*
+!**/.env.example
+apps/backend/src/generated
+apps/android
+.git
+.github
+.claude
+CLAUDE.md
+docs
+releases
+study
+backups
+scripts
+*.md
+!deploy/docker/*.md

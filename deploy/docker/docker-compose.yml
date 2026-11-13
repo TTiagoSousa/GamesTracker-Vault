@@ -1,0 +1,49 @@
+# GamesTracker Vault with Docker Compose: the app and its PostgreSQL database.
+#
+#   cp .env.example .env     # then fill in the secrets (install.sh does this for you)
+#   docker compose up -d
+#
+# Open http://<this machine>:8080. Update with:  docker compose pull && docker compose up -d
+# Docs: https://github.com/TTiagoSousa/GamesTracker-Vault/blob/main/docs/install-docker.md
+name: gamestracker-vault
+
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: gametracker
+      POSTGRES_USER: gametracker
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gametracker -d gametracker"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  app:
+    image: ghcr.io/ttiagosousa/gamestracker-vault:${VERSION:-latest}
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "${PORT:-8080}:3000"
+    environment:
+      DATABASE_URL: postgresql://gametracker:${DB_PASSWORD}@db:5432/gametracker
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env}
+      TOKEN_ENCRYPTION_KEY: ${TOKEN_ENCRYPTION_KEY:?Set TOKEN_ENCRYPTION_KEY in .env}
+      FRONTEND_URL: ${APP_URL:-http://localhost:8080}
+      TZ: ${TZ:-Etc/UTC}
+      TRUST_PROXY: ${TRUST_PROXY:-loopback, uniquelocal}
+      # Only used on the first start, while the database has no users.
+      ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+    volumes:
+      - backups:/data/backups
+
+volumes:
+  db-data:
+  backups:
