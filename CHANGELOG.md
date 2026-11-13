@@ -7,6 +7,13 @@ Spanish, are in [`releases/`](./releases) and in the app under Admin → Version
 
 ## [Unreleased]
 
+### Added
+
+- **Assistant history**: conversations are kept on the server and listed beside the chat,
+  to reopen or delete.
+- **Answers keep going** when you leave the page: coming back shows the answer still being
+  written, or finished.
+
 ## [1.0.1] - 2026-11-13
 
 ### Fixed
