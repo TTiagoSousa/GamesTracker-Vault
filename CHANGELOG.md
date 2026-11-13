@@ -7,6 +7,18 @@ Spanish, are in [`releases/`](./releases) and in the app under Admin → Version
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-11-13
+
+### Fixed
+
+- Updates and builds no longer stop for an interactive Prisma question.
+
+### Changed
+
+- CI starts the real Docker compose file with PostgreSQL and checks the app answers,
+  serves the web app and accepts a login, before anything is released.
+- GitHub CodeQL scans the code on every change.
+
 ## [1.0.0] - 2026-11-13
 
 First public release.
@@ -47,5 +59,6 @@ First public release.
   up to 1.6.0, whose history was folded into this release; existing Proxmox installs move
   over with `deploy/proxmox/switch-repo.sh` ([docs/updating.md](./docs/updating.md#moving-from-the-old-repository)).
 
-[Unreleased]: https://github.com/TTiagoSousa/GamesTracker-Vault/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/TTiagoSousa/GamesTracker-Vault/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/TTiagoSousa/GamesTracker-Vault/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/TTiagoSousa/GamesTracker-Vault/releases/tag/v1.0.0
