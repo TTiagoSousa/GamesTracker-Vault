@@ -16,11 +16,23 @@
     "search_games": "Searched IGDB for \"{{query}}\"",
     "get_game": "Opened game {{query}} on IGDB"
   },
+  "history": {
+    "title": "Chats",
+    "loading": "Loading…",
+    "empty": "Your chats are kept here. Ask a question to start one.",
+    "confirm": "Delete this chat?",
+    "delete": "Delete",
+    "deleteLabel": "Delete the chat “{{title}}”",
+    "running": "Answering",
+    "now": "just now",
+    "opening": "Opening the chat…"
+  },
   "errors": {
     "generic": "The assistant couldn’t answer. Try again.",
     "network": "The connection to the server dropped mid-answer. Try again.",
     "stopped": "You stopped the answer.",
-    "settings": "Could not read the assistant settings. Reload the page."
+    "settings": "Could not read the assistant settings. Reload the page.",
+    "interrupted": "The answer was cut short because the server restarted. Ask again."
   },
   "setup": {
     "title": "Connect your Claude"
@@ -30,7 +42,7 @@
     "change": "Change in Settings",
     "newChat": "New chat",
     "privacyTitle": "What the assistant reads",
-    "privacy": "With each question, the chat and your shelf go to Anthropic, with your key.",
+    "privacy": "With each question, the chat and your shelf go to Anthropic, with your key. Chats are kept on your server until you delete them.",
     "help": "How to add a key",
     "suggestions": "Try asking"
   },

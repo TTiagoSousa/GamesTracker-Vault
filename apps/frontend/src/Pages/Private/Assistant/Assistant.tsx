@@ -6,25 +6,34 @@ import { useAiSettings } from '../../../Hooks/Ai/useAiSettings';
 import { useAssistantChat } from '../../../Hooks/Ai/useAssistantChat';
 import Ai_Card from '../../../Components/Ai_Card/Ai_Card';
 import Markdown from '../../../Components/Markdown/Markdown';
+import Conversation_List from './Conversation_List';
 import * as Icon from '../../../Imports/icons';
 import './Assistant.scss';
 
 // Starter questions (keys in assistant:suggestions)
 const SUGGESTIONS = ['next', 'similar', 'backlog', 'short', 'hidden'] as const;
+// Error codes the server or the page store instead of a sentence
+const ERROR_CODES = ['stopped', 'interrupted', 'network'];
 
 /**
  * The assistant (Claude), sized exactly to the screen — the page never scrolls. On the
  * left the conversation (header with the model and "New conversation", messages with
- * their own scroll, input box at the bottom); on the right suggested questions
- * and what the assistant reads. With no saved key, the card to add one takes the place
- * of the conversation.
+ * their own scroll, input box at the bottom); on the right the saved conversations,
+ * suggested questions and what the assistant reads. On narrow screens the saved
+ * conversations open from the header, over the messages. With no saved key, the card
+ * to add one takes the place of the conversation.
+ *
+ * Answers are written on the server: leaving the page and coming back shows the
+ * answer still being written, or finished.
  */
 const Assistant = () => {
   const { t } = useTranslation('assistant');
   const { username } = useAuth();
   const ai = useAiSettings();
-  const { messages, streaming, send, stop, reset } = useAssistantChat(username);
+  const chat = useAssistantChat(username);
+  const { messages, streaming, send, stop } = chat;
   const [draft, setDraft] = useState('');
+  const [historyOpen, setHistoryOpen] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   // Only follows the reply down if the user was already at the bottom
@@ -43,7 +52,8 @@ const Assistant = () => {
   const ask = (text: string) => {
     if (!text.trim() || streaming) return;
     stickRef.current = true;
-    void send(text);
+    // If it couldn't be sent, the question goes back to the box
+    void send(text).then((sent) => { if (!sent) setDraft(text); });
     setDraft('');
     inputRef.current?.focus();
   };
@@ -58,6 +68,29 @@ const Assistant = () => {
 
   const configured = Boolean(ai.settings?.configured);
 
+  const openConversation = (id: string) => {
+    stickRef.current = true;
+    setHistoryOpen(false);
+    void chat.open(id);
+  };
+
+  const newConversation = () => {
+    setHistoryOpen(false);
+    chat.reset();
+    inputRef.current?.focus();
+  };
+
+  const errorText = (error: string) => (ERROR_CODES.includes(error) ? t(`errors.${error}`) : error);
+
+  const list = (
+    <Conversation_List
+      conversations={chat.conversations}
+      activeId={chat.activeId}
+      onOpen={openConversation}
+      onRemove={chat.remove}
+    />
+  );
+
   return (
     <div className='Assistant'>
       <section className='Assistant_Chat'>
@@ -67,7 +100,19 @@ const Assistant = () => {
             <h1>{t('title')}</h1>
             <span>{configured ? ai.settings?.model : t('side.noKey')}</span>
           </div>
-          <button type='button' className='Assistant_New' onClick={reset} disabled={!messages.length || !configured}>
+          {configured && (
+            <button
+              type='button'
+              className={`Assistant_History_Toggle${historyOpen ? ' open' : ''}`}
+              onClick={() => setHistoryOpen((open) => !open)}
+              aria-expanded={historyOpen}
+              aria-label={t('history.title')}
+              title={t('history.title')}
+            >
+              <Icon.History />
+            </button>
+          )}
+          <button type='button' className='Assistant_New' onClick={newConversation} disabled={!messages.length || !configured}>
             <Icon.Plus />
             {t('side.newChat')}
           </button>
@@ -82,10 +127,19 @@ const Assistant = () => {
           </div>
         )}
 
+        {configured && historyOpen && (
+          <div className='Assistant_History_Panel'>
+            <h2>{t('history.title')}</h2>
+            {list}
+          </div>
+        )}
+
         {configured && (
           <>
             <div className='Assistant_Messages' ref={listRef} onScroll={onScroll} aria-live='polite'>
-              {messages.length === 0 ? (
+              {chat.opening && messages.length === 0 ? (
+                <p className='Assistant_Thinking Assistant_Opening'>{t('history.opening')}</p>
+              ) : messages.length === 0 ? (
                 <div className='Assistant_Intro'>
                   <span className='Assistant_Intro_Mark' aria-hidden='true'><Icon.Logo /></span>
                   <p>{t('intro')}</p>
@@ -98,8 +152,8 @@ const Assistant = () => {
                   </div>
                 </div>
               ) : (
-                messages.map((message, i) => (
-                  <article key={i} className={`Assistant_Message ${message.role}`}>
+                messages.map((message) => (
+                  <article key={message.id} className={`Assistant_Message ${message.role}${message.pending ? ' pending' : ''}`}>
                     <span className='Assistant_Avatar' aria-hidden='true'>
                       {message.role === 'user' ? (username ?? '?').charAt(0).toUpperCase() : <Icon.Logo />}
                     </span>
@@ -119,7 +173,7 @@ const Assistant = () => {
                       ) : (
                         <p className='Assistant_User_Text'>{message.content}</p>
                       )}
-                      {message.error && <p className='Assistant_Message_Error'>{message.error}</p>}
+                      {message.error && <p className='Assistant_Message_Error'>{errorText(message.error)}</p>}
                     </div>
                   </article>
                 ))
@@ -149,8 +203,15 @@ const Assistant = () => {
         )}
       </section>
 
-      {/* Right column: starter questions and what the assistant reads */}
+      {/* Right column: saved conversations, starter questions and what the assistant reads */}
       <aside className='Assistant_Side'>
+        {configured && (
+          <div className='Assistant_Side_Block Assistant_Side_History'>
+            <h2>{t('history.title')}</h2>
+            {list}
+          </div>
+        )}
+
         <div className='Assistant_Side_Block'>
           <h2>{t('side.suggestions')}</h2>
           <div className='Assistant_Suggestions'>

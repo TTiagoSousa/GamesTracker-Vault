@@ -20,3 +20,4 @@ export { default as Dice } from '../Assets/Icons/Dice/Dice';
 export { default as Send } from '../Assets/Icons/Send/Send';
 export { default as Trash } from '../Assets/Icons/Trash/Trash';
 export { default as Chart } from '../Assets/Icons/Chart/Chart';
+export { default as History } from '../Assets/Icons/History/History';

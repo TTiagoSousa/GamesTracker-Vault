@@ -349,10 +349,202 @@
     }
   }
 
+  // --- Saved conversations ---------------------------------------------------------------
+  // In the right column the list takes the room left by the other blocks, with its own
+  // scroll; on narrow screens it opens from the header, over the messages.
+  .Assistant_Chat{ position: relative; }
+
+  .Assistant_Side_History{
+    flex: 1 1 auto;
+    min-height: 180px;
+
+    .Conversation_List{ flex: 1; min-height: 0; overflow-y: auto; }
+  }
+
+  .Assistant_Side:has(.Assistant_Side_History){ overflow: hidden; }
+
+  .Assistant_History_Toggle{
+    @include Mixin.Ghost_Button;
+    display: none;
+    flex-shrink: 0;
+    margin-left: auto;
+    width: 38px;
+    height: 38px;
+    padding: 9px;
+
+    &.open{ color: var(--accent); border-color: var(--accent); }
+  }
+
+  .Assistant_History_Panel{
+    position: absolute;
+    inset: 67px 0 0;
+    z-index: 2;
+    overflow-y: auto;
+    padding: 16px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background: var(--surface);
+
+    h2{
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+  }
+
+  .Conversation_List{
+    display: flex;
+    flex-direction: column;
+    margin: 0 -8px;
+
+    li{
+      position: relative;
+      display: flex;
+      align-items: stretch;
+      border-radius: var(--ctrl-radius);
+
+      &:hover, &:focus-within{ background: var(--surface-2); }
+
+      // The open conversation: a bar like a spine on the shelf
+      &.active{
+        background: var(--accent-soft);
+
+        &::before{
+          content: '';
+          position: absolute;
+          left: 0;
+          top: 8px;
+          bottom: 8px;
+          width: 3px;
+          border-radius: 2px;
+          background: var(--accent);
+        }
+      }
+    }
+  }
+
+  .Conversation_List_Open{
+    flex: 1;
+    min-width: 0;
+    padding: 9px 4px 9px 12px;
+    border: 0;
+    background: none;
+    color: inherit;
+    font-family: inherit;
+    text-align: left;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+
+    &:focus-visible{ outline: 2px solid var(--accent); outline-offset: -2px; border-radius: var(--ctrl-radius); }
+  }
+
+  .Conversation_List_Title{
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.35;
+    color: var(--text-main);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .Conversation_List_Meta{
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12.5px;
+    color: var(--text-faint);
+  }
+
+  .Conversation_List_Live{
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: assistantLive 1.4s ease-in-out infinite;
+  }
+
+  .Conversation_List_Remove{
+    flex-shrink: 0;
+    width: 34px;
+    padding: 9px;
+    border: 0;
+    background: none;
+    color: var(--text-faint);
+    cursor: pointer;
+    opacity: 0;
+
+    li:hover &, &:focus-visible{ opacity: 1; }
+    &:hover{ color: var(--danger-color); }
+    &:focus-visible{ outline: 2px solid var(--accent); outline-offset: -2px; border-radius: var(--ctrl-radius); }
+
+    // Touch screens have no hover: always visible
+    @media (hover: none){ opacity: 1; }
+  }
+
+  .Conversation_List_Confirm{
+    flex: 1;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 10px;
+    padding: 9px 12px;
+    font-size: 13.5px;
+    color: var(--text-main);
+
+    span{ flex: 1 1 100%; font-weight: 600; }
+
+    button{
+      @include Mixin.Ghost_Button;
+      height: 30px;
+      padding: 0 10px;
+      font-size: 13px;
+
+      &.danger{ color: var(--danger-color); border-color: var(--danger-color); }
+    }
+  }
+
+  .Conversation_List_Empty{
+    font-size: 13.5px;
+    line-height: 1.55;
+    color: var(--text-faint);
+  }
+
+  // The answer being written: a cursor at the end of the text
+  .Assistant_Message.pending .Markdown > :last-child::after{
+    content: '';
+    display: inline-block;
+    width: .5em;
+    height: 1em;
+    margin-left: 3px;
+    vertical-align: -2px;
+    background: var(--accent);
+    animation: assistantCaret 1s steps(2, start) infinite;
+  }
+
+  .Assistant_Message.pending .Assistant_Thinking{
+    animation: assistantLive 1.6s ease-in-out infinite;
+  }
+
+  .Assistant_Opening{ margin: auto; }
+
   // --- Narrow screens (at the end, to win over the rules above) ---------------------------
   @media (max-width: 980px){
     .Assistant_Side{ display: none; }
     .Assistant_Intro_Suggestions{ display: flex; }
+    .Assistant_History_Toggle{ display: block; }
+    .Assistant_History_Toggle + .Assistant_New{ margin-left: 0; }
+  }
+
+  @media (min-width: 981px){ .Assistant_History_Panel{ display: none; } }
+
+  @media (prefers-reduced-motion: reduce){
+    .Conversation_List_Live,
+    .Assistant_Message.pending .Assistant_Thinking,
+    .Assistant_Message.pending .Markdown > :last-child::after{ animation: none; }
   }
 
   @media (max-width: 760px){
@@ -360,6 +552,8 @@
     .Assistant_Head_Icon{ width: 34px; height: 34px; padding: 8px; }
     .Assistant_Head_Text h1{ font-size: 16px; }
     .Assistant_New{ height: 34px; padding: 0 10px; font-size: 12.5px; }
+    .Assistant_History_Toggle{ width: 34px; height: 34px; padding: 8px; }
+    .Assistant_History_Panel{ inset: 55px 0 0; padding: 14px; }
     .Assistant_Messages{ padding: 14px; gap: 18px; }
     .Assistant_Message{ grid-template-columns: 28px minmax(0, 1fr); gap: 10px; }
     .Assistant_Avatar{ width: 28px; height: 28px; font-size: 12px; }
@@ -461,6 +655,15 @@
   @media (prefers-reduced-motion: reduce){
     .Assistant_Intro_Mark{ animation: none; }
   }
+}
+
+@keyframes assistantLive{
+  0%, 100%{ opacity: 1; }
+  50%{ opacity: .35; }
+}
+
+@keyframes assistantCaret{
+  to{ visibility: hidden; }
 }
 
 @keyframes assistantGlow{

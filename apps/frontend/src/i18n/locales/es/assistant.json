@@ -16,11 +16,23 @@
     "search_games": "Buscó \"{{query}}\" en IGDB",
     "get_game": "Abrió la ficha del juego {{query}} en IGDB"
   },
+  "history": {
+    "title": "Conversaciones",
+    "loading": "Cargando…",
+    "empty": "Tus conversaciones se guardan aquí. Haz una pregunta para empezar.",
+    "confirm": "¿Borrar esta conversación?",
+    "delete": "Borrar",
+    "deleteLabel": "Borrar la conversación «{{title}}»",
+    "running": "Respondiendo",
+    "now": "ahora",
+    "opening": "Abriendo la conversación…"
+  },
   "errors": {
     "generic": "El asistente no pudo responder. Inténtalo de nuevo.",
     "network": "Se perdió la conexión con el servidor a mitad de la respuesta. Inténtalo de nuevo.",
     "stopped": "Has parado la respuesta.",
-    "settings": "No se pudieron leer los ajustes del asistente. Recarga la página."
+    "settings": "No se pudieron leer los ajustes del asistente. Recarga la página.",
+    "interrupted": "La respuesta se cortó porque el servidor se reinició. Vuelve a preguntar."
   },
   "setup": {
     "title": "Conecta tu Claude"
@@ -30,7 +42,7 @@
     "change": "Cambiar en Ajustes",
     "newChat": "Nueva conversación",
     "privacyTitle": "Qué lee el asistente",
-    "privacy": "Con cada pregunta, la conversación y tu estantería van a Anthropic, con tu clave.",
+    "privacy": "Con cada pregunta, la conversación y tu estantería van a Anthropic, con tu clave. Las conversaciones se guardan en tu servidor hasta que las borres.",
     "help": "Cómo poner la clave",
     "suggestions": "Prueba a preguntar"
   },
