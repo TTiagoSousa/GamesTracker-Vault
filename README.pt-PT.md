@@ -13,7 +13,7 @@ datas, notas, a plataforma onde jogaste e estatísticas, para toda a gente lá d
 
 *[English](./README.md)*
 
-![Início: um destaque com o jogo que estás a jogar, sobre a sua arte, e as tuas prateleiras por baixo](./docs/screenshots/desktop-home-dark.webp)
+![Uma volta rápida: o destaque do Início sobre a arte de cada jogo, as prateleiras e a página de um jogo](./docs/screenshots/tour.gif)
 
 </div>
 

@@ -13,7 +13,7 @@ dates, ratings, the platform you played on and stats, for everyone at home.
 
 *[Português](./README.pt-PT.md)*
 
-![Home: a spotlight on the game you're playing, over its artwork, and your shelves below](./docs/screenshots/desktop-home-dark.webp)
+![A short tour: the Home spotlight over each game's artwork, the shelves and a game page](./docs/screenshots/tour.gif)
 
 </div>
 
