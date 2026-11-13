@@ -1,4 +1,7 @@
 import {
+  ArrayMaxSize,
+  ArrayMinSize,
+  IsArray,
   IsIn,
   IsOptional,
   IsString,
@@ -47,4 +50,13 @@ export class ChatDto {
   @IsOptional()
   @IsIn(['pt-PT', 'en', 'es'])
   language?: 'pt-PT' | 'en' | 'es';
+}
+
+/** The conversations to delete together. */
+export class DeleteConversationsDto {
+  @IsArray()
+  @ArrayMinSize(1, { message: 'Escolhe pelo menos uma conversa.' })
+  @ArrayMaxSize(100)
+  @IsUUID('all', { each: true, message: 'Conversa inválida.' })
+  ids: string[];
 }

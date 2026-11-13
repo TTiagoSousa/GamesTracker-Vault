@@ -115,6 +115,13 @@ export class AiService implements OnModuleInit {
     return { message: 'Conversa apagada' };
   }
 
+  async removeConversations(userId: string, ids: string[]) {
+    const unique = [...new Set(ids)];
+    for (const id of unique) this.runs.get(userId, id)?.controller.abort();
+    const deleted = await this.chats.deleteConversations(userId, unique);
+    return { deleted };
+  }
+
   stop(userId: string, id: string) {
     this.runs.get(userId, id)?.controller.abort();
     return { message: 'Resposta parada' };

@@ -350,18 +350,117 @@
   }
 
   // --- Saved conversations ---------------------------------------------------------------
-  // In the right column the list takes the room left by the other blocks, with its own
-  // scroll; on narrow screens it opens from the header, over the messages.
+  // In the right column the list has its own scroll, up to a height; on narrow screens
+  // it opens from the header, over the messages.
   .Assistant_Chat{ position: relative; }
 
-  .Assistant_Side_History{
-    flex: 1 1 auto;
-    min-height: 180px;
-
-    .Conversation_List{ flex: 1; min-height: 0; overflow-y: auto; }
+  .Assistant_Side_History .Conversation_List{
+    max-height: min(42vh, 380px);
+    overflow-y: auto;
   }
 
-  .Assistant_Side:has(.Assistant_Side_History){ overflow: hidden; }
+  .Conversation_List_Wrap{
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .Conversation_List_Head{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .Conversation_List_Mode{
+    padding: 2px 0;
+    border: 0;
+    background: none;
+    color: var(--accent);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+
+    &:hover{ text-decoration: underline; }
+    &:focus-visible{ outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+  }
+
+  // Selecting: the row is a checkbox; the native one is hidden behind the drawn box
+  .Conversation_List_Open.Conversation_List_Check{
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 10px;
+
+    input{
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    &:has(input:focus-visible){ outline: 2px solid var(--accent); outline-offset: -2px; border-radius: var(--ctrl-radius); }
+  }
+
+  .Conversation_List_Box{
+    flex-shrink: 0;
+    position: relative;
+    width: 16px;
+    height: 16px;
+    margin-top: 2px;
+    border: 1.5px solid var(--text-faint);
+    border-radius: 4px;
+    box-sizing: border-box;
+  }
+
+  .Conversation_List li.checked .Conversation_List_Box{
+    border-color: var(--accent);
+    background: var(--accent);
+
+    // The tick
+    &::after{
+      content: '';
+      position: absolute;
+      left: 4px;
+      top: 1px;
+      width: 4px;
+      height: 8px;
+      border-right: 2px solid var(--on-accent);
+      border-bottom: 2px solid var(--on-accent);
+      transform: rotate(45deg);
+    }
+  }
+
+  .Conversation_List_Text{
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .Conversation_List li.checked{ background: var(--accent-soft); }
+
+  .Conversation_List_Bar{
+    flex-shrink: 0;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--line);
+    font-size: 13.5px;
+    color: var(--text-main);
+
+    span{ flex: 1 1 auto; font-weight: 600; }
+
+    button{
+      @include Mixin.Ghost_Button;
+      height: 30px;
+      padding: 0 10px;
+      font-size: 13px;
+
+      &.danger{ color: var(--danger-color); border-color: var(--danger-color); }
+    }
+  }
 
   .Assistant_History_Toggle{
     @include Mixin.Ghost_Button;

@@ -23,6 +23,7 @@ export const End_Points = {
     Ai_Models_Endpoint:            () => '/ai/models',
     Ai_Chat_Endpoint:              () => '/ai/chat',
     Ai_Conversations_Endpoint:     () => '/ai/conversations',
+    Ai_Conversations_Delete_Endpoint: () => '/ai/conversations/delete',
     Ai_Conversation_Endpoint:      (id: string) => `/ai/conversations/${id}`,
     Ai_Conversation_Stream_Endpoint: (id: string) => `/ai/conversations/${id}/stream`,
     Ai_Conversation_Stop_Endpoint: (id: string) => `/ai/conversations/${id}/stop`,

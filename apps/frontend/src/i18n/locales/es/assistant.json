@@ -25,7 +25,14 @@
     "deleteLabel": "Borrar la conversación «{{title}}»",
     "running": "Respondiendo",
     "now": "ahora",
-    "opening": "Abriendo la conversación…"
+    "opening": "Abriendo la conversación…",
+    "select": "Seleccionar",
+    "selectAll": "Todas",
+    "selectNone": "Ninguna",
+    "selected_one": "{{count}} seleccionada",
+    "selected_other": "{{count}} seleccionadas",
+    "confirmMany_one": "¿Borrar {{count}} conversación? No se puede deshacer.",
+    "confirmMany_other": "¿Borrar {{count}} conversaciones? No se puede deshacer."
   },
   "errors": {
     "generic": "El asistente no pudo responder. Inténtalo de nuevo.",

@@ -25,7 +25,14 @@
     "deleteLabel": "Apagar a conversa «{{title}}»",
     "running": "A responder",
     "now": "agora",
-    "opening": "A abrir a conversa…"
+    "opening": "A abrir a conversa…",
+    "select": "Selecionar",
+    "selectAll": "Todas",
+    "selectNone": "Nenhuma",
+    "selected_one": "{{count}} selecionada",
+    "selected_other": "{{count}} selecionadas",
+    "confirmMany_one": "Apagar {{count}} conversa? Não dá para desfazer.",
+    "confirmMany_other": "Apagar {{count}} conversas? Não dá para desfazer."
   },
   "errors": {
     "generic": "O assistente não conseguiu responder. Tenta outra vez.",

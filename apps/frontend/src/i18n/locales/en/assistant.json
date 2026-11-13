@@ -25,7 +25,14 @@
     "deleteLabel": "Delete the chat “{{title}}”",
     "running": "Answering",
     "now": "just now",
-    "opening": "Opening the chat…"
+    "opening": "Opening the chat…",
+    "select": "Select",
+    "selectAll": "All",
+    "selectNone": "None",
+    "selected_one": "{{count}} selected",
+    "selected_other": "{{count}} selected",
+    "confirmMany_one": "Delete {{count}} chat? This can’t be undone.",
+    "confirmMany_other": "Delete {{count}} chats? This can’t be undone."
   },
   "errors": {
     "generic": "The assistant couldn’t answer. Try again.",

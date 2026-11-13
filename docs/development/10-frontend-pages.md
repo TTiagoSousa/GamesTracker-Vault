@@ -391,13 +391,19 @@ the answer still being written, or finished.
   `/Vault/Help#claude`.
 
 `Conversation_List` (`Pages/Private/Assistant/Conversation_List.tsx`) receives
-`conversations`, `activeId`, `onOpen` and `onRemove`. `null` → `history.loading`; empty →
+`conversations`, `activeId`, `onOpen`, `onRemove` and `onRemoveMany`, and draws its own
+heading (`history.title`). `null` → `history.loading`; empty →
 `history.empty`. Each row: the title and when it was last updated (`history.now` under a
 minute, then `Intl.RelativeTimeFormat` in minutes, hours and days, and the date after a
 week) — or, while the assistant is still answering it, a pulsing dot and
 `history.running`; the open one has `aria-current`. The trash button
 (`history.deleteLabel`) turns the row into an inline confirmation (`history.confirm`,
-**Delete** / **Cancel**).
+**Delete** / **Cancel**). **Select** (`history.select`, beside the heading) turns the rows
+into checkboxes (drawn box, the native input hidden but focusable) and shows a bar under
+the list: the count (`history.selected`), **All** / **None** and **Delete**, which asks
+once more (`history.confirmMany`) before `removeMany(ids)` → `POST
+/ai/conversations/delete`; the open conversation, if deleted, becomes a new one. In the
+right column the list scrolls on its own, up to `min(42vh, 380px)`.
 
 On mobile (below 760px) the header, the messages (28px avatars) and the
 composer (46px) get more compact, and the top and bottom padding drops to 16px and
@@ -771,7 +777,7 @@ The `<nav>` uses `nav:sidebar.menu` as its `aria-label`.
 | `useLibraryStats` | `GET /library/stats` | `stats` (`LibraryStats` or `null`), `failed` |
 | `useDiscover` | `GET /library/discover` | `discover()` (→ `GameSummary` or `null`), `loading`, `error` |
 | `useAiSettings` | `GET`/`PUT`/`DELETE /ai/settings`, `POST /ai/models` | `settings`, `failed`, `models`, `busy` (`'save'`·`'models'`·`'remove'`·`null`), `loadModels(apiKey?)`, `save(model, apiKey?)`, `remove` |
-| `useAssistantChat(username)` | `POST /ai/chat`, `GET /ai/conversations`, `GET`/`DELETE /ai/conversations/:id`, `POST /ai/conversations/:id/stop`, `GET /ai/conversations/:id/stream` (`fetch`, streaming) | `conversations` (`ConversationSummary[]` or `null`), `activeId`, `messages`, `streaming`, `opening`, `send(text)` (→ whether it was sent), `stop`, `reset`, `open(id)`, `remove(id)` (→ whether it was deleted) |
+| `useAssistantChat(username)` | `POST /ai/chat`, `GET /ai/conversations`, `GET`/`DELETE /ai/conversations/:id`, `POST /ai/conversations/:id/stop`, `POST /ai/conversations/delete`, `GET /ai/conversations/:id/stream` (`fetch`, streaming) | `conversations` (`ConversationSummary[]` or `null`), `activeId`, `messages`, `streaming`, `opening`, `send(text)` (→ whether it was sent), `stop`, `reset`, `open(id)`, `remove(id)`, `removeMany(ids)` (→ whether they were deleted) |
 | `useApiTokens` | `GET`/`POST /tokens`, `DELETE /tokens/:id` | `tokens`, `busy` (`'create'`·a token id·`null`), `create(input)` (→ the token, shown once, or `null`), `revoke(id)` |
 | `useBackups` | `GET`/`POST /backups`, `PUT /backups/settings`, `DELETE /backups/:name` | `overview`, `busy` (`'create'`·`'settings'`·a file name·`null`), `createBackup`, `saveSettings(settings)`, `remove(name)` |
 

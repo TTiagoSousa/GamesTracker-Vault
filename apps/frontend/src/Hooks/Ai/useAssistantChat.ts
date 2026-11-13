@@ -289,5 +289,18 @@ export const useAssistantChat = (username: string | null) => {
     }
   };
 
-  return { conversations, activeId, messages, streaming, opening, send, stop, reset, open, remove };
+  /** Deletes several conversations at once. */
+  const removeMany = async (ids: string[]) => {
+    try {
+      await http.post(End_Points.Ai_Conversations_Delete_Endpoint(), { ids });
+      setConversations((previous) => (previous ?? []).filter((c) => !ids.includes(c.id)));
+      if (activeRef.current && ids.includes(activeRef.current)) reset();
+      return true;
+    } catch (error) {
+      setAlert({ open: true, message: apiMessage(error), type: 'error' });
+      return false;
+    }
+  };
+
+  return { conversations, activeId, messages, streaming, opening, send, stop, reset, open, remove, removeMany };
 };

@@ -17,7 +17,12 @@ import { Request, Response } from 'express';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { JwtPayload } from 'src/auth/jwt-payload.interface';
 import { AiService } from './ai.service';
-import { ChatDto, ListModelsDto, SaveAiSettingsDto } from './dto/ai.dto';
+import {
+  ChatDto,
+  DeleteConversationsDto,
+  ListModelsDto,
+  SaveAiSettingsDto,
+} from './dto/ai.dto';
 import { RunEvent } from './helpers/chatRuns';
 
 type AuthRequest = Request & { user: JwtPayload };
@@ -75,6 +80,16 @@ export class AiController {
     @Param('id', ParseUUIDPipe) id: string,
   ) {
     return this.ai.conversation(req.user.id, id);
+  }
+
+  // POST because a DELETE with a body is often dropped by proxies
+  @Post('conversations/delete')
+  @HttpCode(200)
+  removeConversations(
+    @Req() req: AuthRequest,
+    @Body() dto: DeleteConversationsDto,
+  ) {
+    return this.ai.removeConversations(req.user.id, dto.ids);
   }
 
   @Delete('conversations/:id')

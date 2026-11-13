@@ -238,6 +238,7 @@ no stored key: `configured: false`, `keyHint` and `updatedAt` `null`, `model` =
 | GET | `/ai/conversations/:id/stream` | — | **200** streamed, `application/x-ndjson` (below); 404 if it isn't the user's |
 | POST | `/ai/conversations/:id/stop` | — | **200** `{ message }` — aborts the answer being written; doesn't fail if there's none |
 | DELETE | `/ai/conversations/:id` | — | `{ message }`; aborts a running answer first; 404 if it doesn't exist |
+| POST | `/ai/conversations/delete` | `{ ids }` | **200** `{ deleted }` — how many of the given ids were this user's; aborts their running answers first. `ids` 1–100 uuids (400 "Choose at least one conversation." / "Invalid conversation."). POST because proxies often drop a DELETE body |
 
 `Message` = `{ id, role: 'user' | 'assistant', content, tools: { name, query }[], error,
 pending }` — `error` is the server's message or the code `stopped` / `interrupted`;

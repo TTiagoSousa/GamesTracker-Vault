@@ -194,6 +194,7 @@ Each user's own Claude key and model.
 | GET | `/ai/conversations/:id/stream` | — | the answer being written, one JSON object per line: `snapshot`, `text`, `tool`, `error`, `ping`, `done` |
 | POST | `/ai/conversations/:id/stop` | — | stops the answer being written |
 | DELETE | `/ai/conversations/:id` | — | deletes the conversation |
+| POST | `/ai/conversations/delete` | `{ ids: [uuid] }` (1–100) | `{ deleted }` — deletes several at once |
 
 Conversations are kept on the server, and the last 40 messages go with each question.
 The answer keeps being written if the connection drops: `/stream` first sends a

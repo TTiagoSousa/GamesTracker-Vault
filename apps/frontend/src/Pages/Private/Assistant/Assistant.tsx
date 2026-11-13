@@ -88,6 +88,7 @@ const Assistant = () => {
       activeId={chat.activeId}
       onOpen={openConversation}
       onRemove={chat.remove}
+      onRemoveMany={chat.removeMany}
     />
   );
 
@@ -129,7 +130,6 @@ const Assistant = () => {
 
         {configured && historyOpen && (
           <div className='Assistant_History_Panel'>
-            <h2>{t('history.title')}</h2>
             {list}
           </div>
         )}
@@ -207,7 +207,6 @@ const Assistant = () => {
       <aside className='Assistant_Side'>
         {configured && (
           <div className='Assistant_Side_Block Assistant_Side_History'>
-            <h2>{t('history.title')}</h2>
             {list}
           </div>
         )}

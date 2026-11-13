@@ -102,4 +102,12 @@ export class AiChatRepository {
     });
     return count > 0;
   }
+
+  /** Deletes several at once; returns how many were this user's. */
+  async deleteConversations(userId: string, ids: string[]): Promise<number> {
+    const { count } = await this.prisma.aiConversation.deleteMany({
+      where: { id: { in: ids }, userId },
+    });
+    return count;
+  }
 }
