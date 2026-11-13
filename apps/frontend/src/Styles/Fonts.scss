@@ -1,0 +1,12 @@
+// Two families:
+//   · Jost         — headings, brand, shelf labels and big numbers: geometric,
+//                    in the spirit of game titles and box art
+//   · Rethink Sans — all other text
+// JetBrains Mono is only for code: tokens, paths, keys.
+@import url('https://fonts.googleapis.com/css2?family=Jost:wght@500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Rethink+Sans:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+$font_family_sans:    'Rethink Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+$font_family_display: 'Jost', 'Rethink Sans', system-ui, sans-serif;
+$font_family_mono:    'JetBrains Mono', ui-monospace, 'SFMono-Regular', monospace;

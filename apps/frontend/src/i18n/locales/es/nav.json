@@ -1,0 +1,21 @@
+{
+  "menu": {
+    "home": "Inicio",
+    "settings": "Ajustes",
+    "admin": "Admin",
+    "stats": "Estadísticas",
+    "assistant": "Asistente"
+  },
+  "sidebar": {
+    "menu": "Menú",
+    "lightMode": "Modo claro",
+    "darkMode": "Modo oscuro",
+    "logout": "Cerrar sesión",
+    "search": "Buscar",
+    "account": "Mi cuenta",
+    "assistantKey": "Asistente (Claude)",
+    "help": "Ayuda",
+    "androidApp": "App Android",
+    "changeServer": "Cambiar de servidor"
+  }
+}

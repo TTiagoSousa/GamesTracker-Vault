@@ -1,0 +1,64 @@
+// ---------------------------------------------------------------------------
+// Base palette — "Ember". Built around the games themselves: a dark, neutral
+// stage so cover art and screenshots carry the colour, and one warm ember
+// orange for what you can do (buttons, links, the active tab). Red is kept
+// for errors only.
+//
+// The game statuses keep their own colours because they carry meaning
+// (amber playing, green finished, violet 100%, slate dropped); they appear only
+// on shelf dividers, cover spines, dots and charts.
+//
+// Night is the main theme; day is the same layout under the lights.
+//
+// Only Tokens.scss reads from here. Components always use the tokens, never this.
+// ---------------------------------------------------------------------------
+
+// --- Day ---
+$day-bg:        #ECECEF;
+$day-surface:   #F8F8FA;
+$day-surface-2: #E1E1E6;  // inset surfaces (inputs, tracks)
+$day-surface-3: #D4D4DB;
+$day-line:      rgba(20, 20, 28, .10);
+$day-line-2:    rgba(20, 20, 28, .20);
+$day-text:      #16161D;
+$day-soft:      #50505C;
+$day-faint:     #85858F;
+
+$day-accent:        #D45F00;  // ember
+$day-accent-bright: #B34E00;
+$day-accent-deep:   #F8D9C0;
+
+// --- Night ---
+$night-bg:        #0E0E12;
+$night-surface:   #17171D;
+$night-surface-2: #1F1F27;
+$night-surface-3: #2A2A33;
+$night-line:      rgba(255, 255, 255, .08);
+$night-line-2:    rgba(255, 255, 255, .16);
+$night-text:      #F2F0EC;
+$night-soft:      #A9A7B0;
+$night-faint:     #6E6C77;
+
+$night-accent:        #FF8A1F;
+$night-accent-bright: #FFA54F;
+$night-accent-deep:   #4A2508;
+
+// --- Game statuses ---
+$playing-day:    #D99100;
+$playing-night:  #FFB020;
+$finished-day:   #149A5C;
+$finished-night: #3DD68C;
+$beaten-day:     #7653EE;
+$beaten-night:   #A78BFA;
+$dropped-day:    #6E7083;
+$dropped-night:  #8B8D9E;
+
+// --- Semantic ---
+$success-night: #3DD68C;
+$success-day:   #107A49;
+$warning-night: #FFB020;
+$warning-day:   #A36B00;
+$danger-night:  #FF6B6B;
+$danger-day:    #C62828;
+$info-night:    #A9A7B0;
+$info-day:      #50505C;

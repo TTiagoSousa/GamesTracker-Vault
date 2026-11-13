@@ -1,0 +1,89 @@
+@use './Styles/Colors/Theme.scss' as *;
+@use './Styles/Formats/Theme.scss' as *;
+@use './Styles/Fonts.scss' as Font;
+
+*{
+  margin: 0;
+  padding: 0;
+  scroll-behavior: smooth;
+  text-decoration: none;
+}
+
+// The scrollbar is always present: without this, a page that starts to
+// scroll (more results) would suddenly narrow and everything would jump sideways.
+// (browsers do not reliably apply scrollbar-gutter on <html>.)
+html{
+  overflow-y: scroll;
+}
+
+body{
+  font-family: Font.$font_family_sans;
+  color: var(--text-main);
+  background-color: var(--bg);
+  -webkit-font-smoothing: antialiased;
+  // Rethink Sans turns "(0)" into a circled digit through its ligatures
+  font-feature-settings: "calt" 0, "liga" 0, "dlig" 0;
+}
+
+// App background: plain case grey, no halos or grids.
+main{
+  min-height: 100svh;
+  background: var(--bg);
+}
+
+*{
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-strong) transparent;
+}
+
+*::-webkit-scrollbar{ width: 8px; height: 8px; }
+*::-webkit-scrollbar-track{ background: transparent; }
+
+*::-webkit-scrollbar-thumb{
+  background: var(--line-strong);
+  border-radius: 8px;
+
+  &:hover{ background: var(--accent); }
+}
+
+::selection{
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+@keyframes vaultPop{
+  from{ opacity: 0; }
+  to{ opacity: 1; transform: none; }
+}
+
+// ---------------------------------------------------------------------------
+// Shared modal titles. They live here so titles across the whole app
+// change together; a new modal adds its own here.
+// ---------------------------------------------------------------------------
+.Admin_Create_User_Modal_Title,
+.Update_Modal_Title{
+  font-family: Font.$font_family_display;
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+// Users who ask for reduced motion get no entrances, slides or pulses.
+@media (prefers-reduced-motion: reduce){
+  *,
+  *::before,
+  *::after{
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+// Form controls do not inherit font settings by default
+button, input, textarea, select{ font-feature-settings: inherit; }
+
+// Native controls (checkboxes, date pickers, scrollbars) follow the theme
+.Dark_Mode{ color-scheme: dark; }
+.Light_Mode{ color-scheme: light; }
+input[type="checkbox"], input[type="radio"]{ accent-color: var(--accent); }

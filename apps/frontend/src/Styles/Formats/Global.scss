@@ -1,0 +1,5 @@
+// Radii by hierarchy, not one for everything: larger for panels, medium for controls,
+// nearly square spines (like the cases).
+$border-radius: 8px;   // framed areas and modals
+$ctrl-radius:   6px;   // buttons, inputs, tabs
+$spine-radius:  3px;   // spines and covers

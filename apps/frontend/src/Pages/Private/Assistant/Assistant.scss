@@ -1,0 +1,469 @@
+@use '../../../Styles/Fonts.scss' as Font;
+@use '../../../Styles/Mixins.scss' as Mixin;
+
+// Assistant sized exactly to the screen: the page never scrolls. The height is the screen
+// minus the top bar and the container's top spacing; the container's bottom margin
+// is cancelled. Two columns: the conversation (messages with their own scroll,
+// input box at the bottom) and, on the right, suggestions and what the assistant reads.
+.Assistant {
+  --pad-top: 32px;
+  --pad-bottom: 24px;
+
+  // On mobile also subtracts the bottom navigation bar
+  height: calc(100svh - var(--top-nav-height, 76px) - var(--bottom-nav-height, 0px) - var(--pad-top) - var(--pad-bottom));
+  min-height: 460px;
+  margin-bottom: calc(var(--pad-bottom) - 64px);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 20px;
+  font-family: Font.$font_family_sans;
+
+  @media (max-width: 980px){ grid-template-columns: 1fr; }
+
+  @media (max-width: 760px){
+    --pad-top: 16px;
+    --pad-bottom: 12px;
+    min-height: 380px;
+    margin-bottom: calc(var(--pad-bottom) - 48px);
+  }
+
+  // --- Conversation -----------------------------------------------------------------------
+  .Assistant_Chat{
+    @include Mixin.Frame_Surface;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .Assistant_Head{
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .Assistant_Head_Icon{
+    width: 38px;
+    height: 38px;
+    padding: 9px;
+    box-sizing: border-box;
+    flex-shrink: 0;
+    display: none;
+  }
+
+  .Assistant_Head_Text{
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+
+    h1{
+      font-family: Font.$font_family_display;
+      font-size: 17px;
+      font-weight: 600;
+      line-height: 1.15;
+      color: var(--text-main);
+    }
+
+    span{
+      font-family: Font.$font_family_mono;
+      font-size: 12.5px;
+      color: var(--text-faint);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+
+  .Assistant_New{
+    @include Mixin.Ghost_Button;
+    flex-shrink: 0;
+    margin-left: auto;
+    height: 38px;
+    padding: 0 14px;
+
+    svg{ width: 14px; height: 14px; }
+  }
+
+  .Assistant_Error{
+    margin: 16px 18px 0;
+    padding: 12px 14px;
+    border-radius: var(--ctrl-radius);
+    background: var(--danger-color-soft);
+    color: var(--danger-color);
+    font-size: 14.5px;
+    font-weight: 600;
+  }
+
+  // No key: the card fills the body, with its own scroll if it doesn't fit
+  .Assistant_Setup{
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    border-top: 0;
+    padding: 4px 0 0;
+
+    .Ai_Card{ border: none; padding: 0; }
+  }
+
+  .Assistant_Messages{
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 22px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+
+    @media (max-width: 720px){ padding: 16px; }
+  }
+
+  .Assistant_Intro{
+    margin: auto;
+    max-width: 460px;
+    text-align: center;
+
+    p{
+      font-size: 15.5px;
+      line-height: 1.6;
+      color: var(--text-soft);
+    }
+  }
+
+  .Assistant_Message{
+    display: grid;
+    grid-template-columns: 32px minmax(0, 1fr);
+    gap: 14px;
+    max-width: 860px;
+
+    // The user's questions sit in a shaded block
+    &.user .Assistant_Bubble{
+      padding: 10px 14px;
+      border-radius: var(--ctrl-radius);
+      background: var(--surface-2);
+    }
+  }
+
+  .Assistant_Avatar{
+    width: 32px;
+    height: 32px;
+    display: grid;
+    place-items: center;
+    border-radius: var(--ctrl-radius);
+    font-family: Font.$font_family_display;
+    font-size: 13px;
+    font-weight: 700;
+
+    .user &{
+      background: var(--surface-3);
+      color: var(--text-main);
+    }
+
+    .assistant &{
+      padding: 8px;
+      box-sizing: border-box;
+      background: var(--accent);
+      color: var(--on-accent);
+    }
+  }
+
+  .Assistant_Bubble{
+    min-width: 0;
+    padding-top: 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .Assistant_User_Text{
+    font-size: 15px;
+    line-height: 1.55;
+    color: var(--text-main);
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+
+  .Assistant_Thinking{
+    font-size: 14.5px;
+    color: var(--text-faint);
+  }
+
+  // Searches the assistant made on IGDB
+  .Assistant_Tools{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+
+    li{
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      background: var(--surface-2);
+      color: var(--text-soft);
+      font-size: 12.5px;
+      font-weight: 600;
+
+      svg{ width: 12px; height: 12px; }
+    }
+  }
+
+  .Assistant_Message_Error{
+    padding: 10px 12px;
+    border-radius: var(--ctrl-radius);
+    background: var(--danger-color-soft);
+    color: var(--danger-color);
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.45;
+  }
+
+  // --- Input ------------------------------------------------------------------------------
+  .Assistant_Composer{
+    flex-shrink: 0;
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+    padding: 14px;
+    border-top: 1px solid var(--line);
+
+    textarea{
+      @include Mixin.Control_Surface;
+      flex: 1;
+      height: 52px;
+      max-height: 160px;
+      padding: 14px;
+      box-sizing: border-box;
+      font-size: 15px;
+      line-height: 1.45;
+      resize: none;
+    }
+  }
+
+  .Assistant_Send{
+    @include Mixin.Solid_Button;
+    width: 52px;
+    height: 52px;
+    flex-shrink: 0;
+    padding: 0;
+
+    svg{ width: 20px; height: 20px; }
+  }
+
+  .Assistant_Stop{
+    @include Mixin.Ghost_Button;
+    height: 52px;
+    flex-shrink: 0;
+    padding: 0 18px;
+  }
+
+  // --- Right column -----------------------------------------------------------------------
+  .Assistant_Side{
+    @include Mixin.Panel_Surface;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .Assistant_Side_Block{
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    & + .Assistant_Side_Block{
+      padding-top: 18px;
+      border-top: 1px solid var(--line);
+    }
+
+    h2{
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    p{
+      font-size: 13.5px;
+      line-height: 1.55;
+      color: var(--text-soft);
+    }
+  }
+
+  .Assistant_Suggestions{
+    display: flex;
+    flex-direction: column;
+
+    button{
+      padding: 12px 0;
+      border: 0;
+      border-top: 1px solid var(--line);
+      background: none;
+      color: var(--text-main);
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 500;
+      line-height: 1.4;
+      text-align: left;
+      cursor: pointer;
+
+      &:hover{ color: var(--accent); }
+      &:focus-visible{ outline: 2px solid var(--accent); outline-offset: 2px; }
+    }
+  }
+
+  .Assistant_Side_Links{
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+
+    a{
+      color: var(--accent);
+      font-size: 13.5px;
+      font-weight: 600;
+
+      &:hover{ text-decoration: underline; }
+    }
+  }
+
+  // Suggestions inside the empty conversation: only when the right column isn't shown
+  .Assistant_Intro_Suggestions{
+    display: none;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 16px;
+
+    button{
+      @include Mixin.Ghost_Button;
+      min-height: 36px;
+      padding: 7px 12px;
+      font-weight: 600;
+      text-align: left;
+    }
+  }
+
+  // --- Narrow screens (at the end, to win over the rules above) ---------------------------
+  @media (max-width: 980px){
+    .Assistant_Side{ display: none; }
+    .Assistant_Intro_Suggestions{ display: flex; }
+  }
+
+  @media (max-width: 760px){
+    .Assistant_Head{ padding: 10px 12px; gap: 10px; }
+    .Assistant_Head_Icon{ width: 34px; height: 34px; padding: 8px; }
+    .Assistant_Head_Text h1{ font-size: 16px; }
+    .Assistant_New{ height: 34px; padding: 0 10px; font-size: 12.5px; }
+    .Assistant_Messages{ padding: 14px; gap: 18px; }
+    .Assistant_Message{ grid-template-columns: 28px minmax(0, 1fr); gap: 10px; }
+    .Assistant_Avatar{ width: 28px; height: 28px; font-size: 12px; }
+    .Assistant_Intro p{ font-size: 14.5px; }
+    .Assistant_Composer{ padding: 10px; gap: 8px; }
+    .Assistant_Composer textarea{ height: 46px; padding: 11px 12px; font-size: 15px; }
+    .Assistant_Send{ width: 46px; height: 46px; }
+    .Assistant_Stop{ height: 46px; padding: 0 12px; }
+    .Markdown{ font-size: 14.5px; }
+  }
+}
+
+// ===========================================================================
+// Chat look: your questions on the right, the assistant on the left with the
+// Vault mark, and a rounded input like a game's chat box
+// ===========================================================================
+.Assistant{
+  .Assistant_Chat{ background: var(--surface); }
+
+  .Assistant_Intro{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .Assistant_Intro_Mark{
+    width: 64px;
+    height: 64px;
+    display: grid;
+    place-items: center;
+    color: var(--accent);
+    animation: assistantGlow 3.2s ease-in-out infinite;
+
+    svg{ width: 64px; height: 64px; }
+  }
+
+  .Assistant_Message.user{
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: end;
+    max-width: none;
+
+    .Assistant_Avatar{ display: none; }
+
+    .Assistant_Bubble{
+      max-width: min(640px, 85%);
+      padding: 10px 16px;
+      border-radius: 18px 18px 4px 18px;
+      background: var(--accent-soft);
+      border: 1px solid var(--accent-deep);
+    }
+  }
+
+  .Assistant_Message.assistant .Assistant_Avatar{
+    padding: 5px;
+    border-radius: 50%;
+    background: var(--surface-2);
+    color: var(--accent);
+  }
+
+  .Assistant_Composer{
+    padding: 14px 16px 16px;
+    border-top: 0;
+
+    textarea{
+      border-radius: 26px;
+      padding: 14px 20px;
+      background: var(--surface-2);
+    }
+  }
+
+  .Assistant_Send{ border-radius: 50%; }
+
+  .Assistant_Suggestions button{
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+
+    &::after{
+      content: '';
+      flex-shrink: 0;
+      width: 7px;
+      height: 7px;
+      margin-top: 6px;
+      border-top: 2px solid currentColor;
+      border-right: 2px solid currentColor;
+      transform: rotate(45deg);
+      opacity: 0;
+      transition: opacity .2s ease, transform .2s ease;
+    }
+
+    &:hover::after{ opacity: 1; transform: translateX(3px) rotate(45deg); }
+  }
+
+  .Assistant_Intro_Suggestions button{
+    border-radius: 18px;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .Assistant_Intro_Mark{ animation: none; }
+  }
+}
+
+@keyframes assistantGlow{
+  0%, 100%{ filter: drop-shadow(0 0 0 transparent); }
+  50%{ filter: drop-shadow(0 0 14px var(--accent)); }
+}

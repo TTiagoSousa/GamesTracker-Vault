@@ -1,0 +1,84 @@
+{
+  "title": "Ajustes",
+  "theme": {
+    "title": "Tema",
+    "description": "Día, noche o automático.",
+    "dark": {
+      "name": "Noche",
+      "hint": "La bóveda de noche"
+    },
+    "light": {
+      "name": "Día",
+      "hint": "El mismo lenguaje, a la luz"
+    },
+    "auto": {
+      "name": "Automático",
+      "hint": "Noche de 20:00 a 7:00"
+    }
+  },
+  "language": {
+    "title": "Idioma",
+    "description": "Se guarda en este navegador."
+  },
+  "sections": {
+    "appearance": "Apariencia",
+    "account": "Cuenta",
+    "assistant": "Asistente",
+    "api": "API"
+  },
+  "account": {
+    "usernameTitle": "Nombre",
+    "usernameDescription": "Letras, números, punto, guion y guion bajo.",
+    "username": "Nombre de usuario",
+    "saveUsername": "Guardar nombre",
+    "usernameSaved": "Nombre cambiado",
+    "passwordTitle": "Contraseña",
+    "passwordDescription": "Escribe la actual y la nueva dos veces.",
+    "currentPassword": "Contraseña actual",
+    "newPassword": "Contraseña nueva",
+    "confirmPassword": "Repite la contraseña nueva",
+    "savePassword": "Cambiar contraseña",
+    "passwordSaved": "Contraseña cambiada",
+    "saving": "Guardando…",
+    "showPasswords": "Mostrar contraseñas",
+    "hidePasswords": "Ocultar contraseñas",
+    "ruleLength_one": "Al menos {{count}} carácter",
+    "ruleLength_other": "Al menos {{count}} caracteres",
+    "ruleMatch": "Las dos contraseñas nuevas coinciden"
+  },
+  "api": {
+    "description": "Para que otros programas (MyHomeLab, scripts, Home Assistant) usen la API en tu nombre.",
+    "docs": "Ver la documentación de la API",
+    "newTitle": "Nuevo token",
+    "newDescription": "El token solo se muestra una vez, justo después de crearlo.",
+    "name": "Nombre",
+    "namePlaceholder": "Copias de MyHomeLab",
+    "expiry": "Caduca",
+    "expiryNever": "Nunca",
+    "expiryDays_one": "Dentro de {{count}} día",
+    "expiryDays_other": "Dentro de {{count}} días",
+    "readOnly": "Solo lectura.",
+    "readOnlyHint": "Lee juegos, versión y copias, pero no cambia nada.",
+    "create": "Crear token",
+    "creating": "Creando…",
+    "createdTitle": "Copia el token ahora",
+    "createdHint": "Por seguridad no lo volverás a ver. Si lo pierdes, revócalo y crea otro. Envíalo en la cabecera Authorization: Bearer <token>.",
+    "createdDone": "Ya lo he copiado",
+    "copy": "Copiar",
+    "copied": "Copiado",
+    "listTitle": "Tus tokens",
+    "empty": "Todavía no has creado ningún token.",
+    "badgeReadOnly": "Solo lectura",
+    "badgeFull": "Acceso total",
+    "badgeExpired": "Caducado",
+    "createdAt": "Creado el {{date}}",
+    "lastUsed": "Usado por última vez el {{date}}",
+    "neverUsed": "Nunca usado",
+    "expiresAt": "Caduca el {{date}}",
+    "expiredAt": "Caducó el {{date}}",
+    "noExpiry": "No caduca",
+    "revoke": "Revocar",
+    "confirmRevoke": "Revocar token",
+    "revoked": "Token revocado"
+  }
+}

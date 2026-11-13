@@ -1,0 +1,113 @@
+@use '../../Styles/Fonts.scss' as Font;
+@use '../../Styles/Mixins.scss' as Mixin;
+
+// Full width, in the same style as the Settings sections.
+.Version_Card{
+  @include Mixin.Panel_Surface;
+  width: 100%;
+  padding: 24px 0 0;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  .Version_Card_head{
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+
+    .Version_Card_title{
+      @include Mixin.Section_Title(17px);
+      color: var(--text-main);
+    }
+
+    .Version_Card_description{
+      margin-top: 5px;
+      font-size: 13px;
+      color: var(--text-soft);
+    }
+  }
+
+  .Version_Card_link{
+    @include Mixin.Ghost_Button;
+    height: 36px;
+    padding: 0 16px;
+    flex-shrink: 0;
+  }
+
+  .Version_Card_grid{
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 0;
+  }
+
+  .Version_Card_stat{
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 4px 24px 4px 0;
+    min-width: 0;
+
+    & + .Version_Card_stat{ padding-left: 24px; border-left: 1px solid var(--line); }
+
+    span{
+      font-size: 13px;
+      color: var(--text-soft);
+    }
+
+    em{
+      font-style: normal;
+      font-family: Font.$font_family_display;
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--text-main);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+
+      &.new{ color: var(--accent); }
+    }
+
+    small{
+      font-size: 13px;
+      color: var(--text-faint);
+    }
+  }
+
+  .Version_Card_latest{
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 14px;
+    border-left: 3px solid var(--accent);
+    padding-left: 16px;
+
+    .Version_Card_latest_title{
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+  }
+
+  .Version_Card_actions{
+    display: flex;
+    gap: 10px;
+
+    .Version_Card_update{
+      @include Mixin.Solid_Button;
+      height: 42px;
+      padding: 0 20px;
+    }
+  }
+
+  .Version_Card_muted{
+    font-size: 12.5px;
+    color: var(--text-faint);
+  }
+
+  .Version_Card_error{
+    font-size: 12.5px;
+    color: var(--danger-color);
+  }
+}

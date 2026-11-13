@@ -1,0 +1,84 @@
+{
+  "title": "Settings",
+  "theme": {
+    "title": "Theme",
+    "description": "Day, night or automatic.",
+    "dark": {
+      "name": "Night",
+      "hint": "The vault at night"
+    },
+    "light": {
+      "name": "Day",
+      "hint": "The same language, in daylight"
+    },
+    "auto": {
+      "name": "Automatic",
+      "hint": "Night from 8 pm to 7 am"
+    }
+  },
+  "language": {
+    "title": "Language",
+    "description": "Saved in this browser."
+  },
+  "sections": {
+    "appearance": "Appearance",
+    "account": "Account",
+    "assistant": "Assistant",
+    "api": "API"
+  },
+  "account": {
+    "usernameTitle": "Name",
+    "usernameDescription": "Letters, numbers, dot, hyphen and underscore.",
+    "username": "Username",
+    "saveUsername": "Save name",
+    "usernameSaved": "Name changed",
+    "passwordTitle": "Password",
+    "passwordDescription": "Type the current one and the new one twice.",
+    "currentPassword": "Current password",
+    "newPassword": "New password",
+    "confirmPassword": "Repeat the new password",
+    "savePassword": "Change password",
+    "passwordSaved": "Password changed",
+    "saving": "Saving…",
+    "showPasswords": "Show passwords",
+    "hidePasswords": "Hide passwords",
+    "ruleLength_one": "At least {{count}} character",
+    "ruleLength_other": "At least {{count}} characters",
+    "ruleMatch": "The two new passwords match"
+  },
+  "api": {
+    "description": "For other programs (MyHomeLab, scripts, Home Assistant) to use the API as you.",
+    "docs": "Read the API documentation",
+    "newTitle": "New token",
+    "newDescription": "The token is shown only once, right after you create it.",
+    "name": "Name",
+    "namePlaceholder": "MyHomeLab backups",
+    "expiry": "Expires",
+    "expiryNever": "Never",
+    "expiryDays_one": "In {{count}} day",
+    "expiryDays_other": "In {{count}} days",
+    "readOnly": "Read-only.",
+    "readOnlyHint": "Reads games, version and backups, but changes nothing.",
+    "create": "Create token",
+    "creating": "Creating…",
+    "createdTitle": "Copy the token now",
+    "createdHint": "For security you won’t see it again. If you lose it, revoke it and create another. Send it in the Authorization: Bearer <token> header.",
+    "createdDone": "I’ve copied it",
+    "copy": "Copy",
+    "copied": "Copied",
+    "listTitle": "Your tokens",
+    "empty": "You haven’t created any tokens yet.",
+    "badgeReadOnly": "Read-only",
+    "badgeFull": "Full access",
+    "badgeExpired": "Expired",
+    "createdAt": "Created {{date}}",
+    "lastUsed": "Last used {{date}}",
+    "neverUsed": "Never used",
+    "expiresAt": "Expires {{date}}",
+    "expiredAt": "Expired {{date}}",
+    "noExpiry": "Doesn’t expire",
+    "revoke": "Revoke",
+    "confirmRevoke": "Revoke token",
+    "revoked": "Token revoked"
+  }
+}

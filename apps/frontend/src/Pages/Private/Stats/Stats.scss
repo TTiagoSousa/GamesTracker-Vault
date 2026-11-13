@@ -1,0 +1,509 @@
+@use '../../../Styles/Fonts.scss' as Font;
+@use '../../../Styles/Mixins.scss' as Mixin;
+
+// Stats in a regular grid: a summary strip with four equal
+// cells and, below, rows of two panels with the same height (or one full
+// width). All panels have the same header and the same spacing.
+// Estimated hours (IGDB averages) are striped, so they're never confused
+// with the ones entered by the user.
+.Stats {
+  @include Mixin.Pages_Configs;
+  gap: 48px;
+
+  --panel-pad: 20px;
+  --estimated-fill: repeating-linear-gradient(135deg, var(--accent) 0 4px, transparent 4px 8px);
+
+  // Color of each status, for spines, legend keys and covers
+  .status-PLAYING{ --status-color: var(--game-status-playing); }
+  .status-PAUSED{ --status-color: var(--text-soft); }
+  .status-PLAN_TO_PLAY{ --status-color: var(--game-status-later); }
+  .status-FINISHED_MAIN,
+  .status-FINISHED_EXTRAS{ --status-color: var(--game-status-finished); }
+  .status-COMPLETED_100{ --status-color: var(--game-status-beaten); }
+  .status-DROPPED{ --status-color: var(--game-status-dropped); }
+
+  .Stats_Hero{
+    margin-bottom: 8px;
+
+    h1{
+      font-family: Font.$font_family_display;
+      font-size: clamp(28px, 3vw, 40px);
+      font-weight: 600;
+      line-height: 1.1;
+      letter-spacing: 0;
+      color: var(--text-main);
+    }
+
+    p{
+      max-width: 640px;
+      margin-top: 10px;
+      font-size: 16px;
+      line-height: 1.6;
+      color: var(--text-soft);
+    }
+  }
+
+  .Stats_Muted{
+    font-size: 14px;
+    color: var(--text-faint);
+  }
+
+  .Stats_Error,
+  .Stats_Warning{
+    max-width: 640px;
+    padding: 12px 14px;
+    border-radius: var(--ctrl-radius);
+    font-size: 14.5px;
+    font-weight: 600;
+    line-height: 1.45;
+  }
+
+  .Stats_Error{
+    background: var(--danger-color-soft);
+    color: var(--danger-color);
+  }
+
+  .Stats_Warning{
+    background: var(--surface-2);
+    color: var(--text-soft);
+  }
+
+  .Stats_Empty{
+    @include Mixin.Panel_Surface;
+    padding: 24px 0 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+
+    p{
+      max-width: 520px;
+      font-size: 15px;
+      line-height: 1.55;
+      color: var(--text-soft);
+    }
+  }
+
+  .Stats_Button{
+    @include Mixin.Solid_Button;
+    height: 42px;
+    padding: 0 20px;
+  }
+
+  // --- Summary: four equal cells, separated by rules ---------------------------------------
+  .Stats_Summary{
+    @include Mixin.Panel_Surface;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+
+    @media (max-width: 900px){ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+
+  .Stats_Summary_Item{
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 20px 24px 0;
+    min-width: 0;
+
+    &:first-child{ padding-left: 0; }
+    & + .Stats_Summary_Item{ border-left: 1px solid var(--line); }
+
+    @media (max-width: 900px){
+      &:nth-child(3){ border-left: none; padding-left: 0; }
+      &:nth-child(n + 3){ border-top: 1px solid var(--line); margin-top: 20px; }
+    }
+  }
+
+  .Stats_Summary_Label{
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-soft);
+  }
+
+  .Stats_Summary_Value{
+    font-family: Font.$font_family_display;
+    font-size: 38px;
+    font-weight: 600;
+    line-height: 1.05;
+    letter-spacing: 0;
+    color: var(--text-main);
+  }
+
+  .Stats_Summary_Note{
+    font-size: 13px;
+    line-height: 1.4;
+    color: var(--text-faint);
+  }
+
+  // --- Rows and panels -----------------------------------------------------------------------
+  // Two panels side by side, always the same height
+  .Stats_Row{
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 48px;
+    align-items: stretch;
+
+    @media (max-width: 860px){ grid-template-columns: 1fr; }
+  }
+
+  .Stats_Panel{
+    @include Mixin.Panel_Surface;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .Stats_Panel_Head{
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 16px 0 0;
+
+    h2{
+      @include Mixin.Section_Title(16px);
+      color: var(--text-main);
+    }
+  }
+
+  .Stats_Panel_Aside{
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--text-soft);
+    white-space: nowrap;
+  }
+
+  .Stats_Panel_Body{
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 16px 0 0;
+  }
+
+  .Stats_Text{
+    font-size: 14px;
+    line-height: 1.55;
+    color: var(--text-soft);
+  }
+
+  // --- Legend ---------------------------------------------------------------------------------
+  .Stats_Legend{
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-size: 13.5px;
+    color: var(--text-soft);
+
+    li{
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+
+      b{
+        margin-left: auto;
+        font-family: Font.$font_family_display;
+        font-size: 13px;
+        color: var(--text-main);
+      }
+
+      &.zero{ opacity: .45; }
+    }
+
+    &.columns{
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px 24px;
+    }
+  }
+
+  .Stats_Key{
+    width: 12px;
+    height: 12px;
+    flex-shrink: 0;
+    border-radius: 3px;
+    background: var(--status-color, var(--accent));
+
+    &.logged{ background: var(--accent); }
+    &.estimated{ background: var(--estimated-fill); box-shadow: inset 0 0 0 1px var(--accent); }
+    &.missing{ background: var(--surface-3); }
+  }
+
+  // Hours: bar split between entered (solid) and estimated (striped). Same
+  // height as the row of spines beside it, so both panels line up.
+  .Stats_Split{
+    display: flex;
+    height: 48px;
+    border-radius: var(--spine-radius);
+    overflow: hidden;
+    background: var(--surface-2);
+
+    .logged{ background: var(--accent); }
+    .estimated{ background: var(--estimated-fill); }
+  }
+
+  // The shelf: spines side by side, width proportional to the number of games
+  .Stats_Spines{
+    display: flex;
+    gap: 3px;
+    height: 48px;
+
+    span{
+      flex-basis: 0;
+      min-width: 8px;
+      border-radius: var(--spine-radius);
+      background: var(--status-color);
+    }
+  }
+
+  // --- Completed per year --------------------------------------------------------------------
+  .Stats_Years{
+    display: flex;
+    align-items: flex-end;
+    gap: 16px;
+    height: 170px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    border-bottom: 1px solid var(--line-strong);
+  }
+
+  .Stats_Year{
+    height: 100%;
+    min-width: 48px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 6px;
+  }
+
+  .Stats_Year_Count{
+    font-family: Font.$font_family_display;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-main);
+  }
+
+  // One spine per game, stacked like boxes lying flat
+  .Stats_Year_Stack{
+    width: 40px;
+    min-height: 8px;
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 2px;
+
+    span{
+      flex: 1;
+      min-height: 3px;
+      border-radius: 1px;
+      background: var(--accent);
+    }
+  }
+
+  .Stats_Year_Label{
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--text-faint);
+  }
+
+  // --- Ratings: ten columns that fill the panel ---------------------------------------------
+  .Stats_Ratings{
+    flex: 1;
+    min-height: 180px;
+    display: grid;
+    grid-template-columns: repeat(10, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .Stats_Rating{
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .Stats_Rating_Count{
+    min-height: 16px;
+    font-family: Font.$font_family_display;
+    font-size: 12px;
+    color: var(--text-main);
+  }
+
+  .Stats_Rating_Bar{
+    width: 100%;
+    min-height: 2px;
+    border-radius: 4px 4px 0 0;
+    background: var(--accent);
+  }
+
+  .Stats_Rating_Label{
+    font-family: Font.$font_family_display;
+    font-size: 11px;
+    color: var(--text-faint);
+  }
+
+  // --- Genres -------------------------------------------------------------------------------
+  .Stats_Bars{
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    li{
+      display: grid;
+      grid-template-columns: minmax(0, 10em) 1fr 2em;
+      align-items: center;
+      gap: 12px;
+      font-size: 13.5px;
+      color: var(--text-soft);
+
+      b{
+        text-align: right;
+        font-family: Font.$font_family_display;
+        font-size: 13px;
+        color: var(--text-main);
+      }
+    }
+  }
+
+  .Stats_Bars_Name{
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .Stats_Bars_Track{
+    height: 10px;
+    border-radius: 4px;
+    background: var(--surface-2);
+    overflow: hidden;
+
+    span{
+      display: block;
+      height: 100%;
+      background: var(--accent);
+    }
+  }
+
+  // --- Highlights: five fixed-height rows -----------------------------------------------------
+  .Stats_Games{
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .Stats_Game{
+    height: 52px;
+    display: grid;
+    grid-template-columns: 18px 34px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 12px;
+    padding: 0 8px;
+    border-radius: var(--ctrl-radius);
+    color: inherit;
+
+    &:hover .Stats_Game_Name{ text-decoration: underline; }
+    &:focus-visible{ outline: 2px solid var(--accent); outline-offset: 2px; }
+
+    // Empty slot, so both lists always have the same height
+    &.empty{ visibility: hidden; }
+  }
+
+  .Stats_Game_Rank{
+    font-family: Font.$font_family_display;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-faint);
+    text-align: center;
+  }
+
+  .Stats_Game_Cover{
+    position: relative;
+    width: 34px;
+    aspect-ratio: 3 / 4;
+    border-radius: 4px;
+    overflow: hidden;
+    background: var(--surface-2);
+
+    &::before{
+      content: '';
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 3px;
+      background: var(--status-color);
+      z-index: 1;
+    }
+
+    img{
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+  }
+
+  .Stats_Game_Name{
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-main);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .Stats_Game_Value{
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    font-family: Font.$font_family_display;
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--text-main);
+
+    em{
+      font-family: Font.$font_family_sans;
+      font-style: normal;
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--text-faint);
+    }
+  }
+
+  .Stats_Note{
+    max-width: 680px;
+    font-size: 13.5px;
+    line-height: 1.6;
+    color: var(--text-faint);
+
+    a{ color: var(--accent); font-weight: 600; }
+  }
+
+  // --- Mobile ---------------------------------------------------------------------------------
+  @media (max-width: 760px){
+    gap: 14px;
+    --panel-pad: 16px;
+
+    .Stats_Hero p{ font-size: 14.5px; margin-top: 6px; }
+    .Stats_Row{ gap: 14px; }
+    .Stats_Summary_Value{ font-size: 24px; }
+    .Stats_Summary_Note{ font-size: 12px; }
+    .Stats_Panel_Head{ padding: 14px var(--panel-pad) 12px; }
+    .Stats_Panel_Head h2{ font-size: 15px; }
+    .Stats_Panel_Body{ padding: 14px var(--panel-pad) var(--panel-pad); gap: 12px; }
+    .Stats_Legend{ font-size: 13px; }
+    .Stats_Legend.columns{ grid-template-columns: 1fr; }
+    .Stats_Ratings{ min-height: 140px; gap: 4px; }
+    .Stats_Years{ height: 140px; gap: 12px; }
+    .Stats_Game{ height: 48px; gap: 10px; grid-template-columns: 16px 30px minmax(0, 1fr) auto; }
+    .Stats_Game_Cover{ width: 30px; }
+    .Stats_Game_Name{ font-size: 13.5px; }
+  }
+}
+
+// A row with a single panel takes the full width
+.Stats .Stats_Row.single{ grid-template-columns: 1fr; }

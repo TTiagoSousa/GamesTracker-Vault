@@ -1,0 +1,179 @@
+@use '../../../../Styles/Fonts.scss' as Font;
+@use '../../../../Styles/Mixins.scss' as Mixin;
+
+.Versions {
+  @include Mixin.Pages_Configs;
+
+  header{
+    @include Mixin.Page_Header;
+
+    .Right_Side{
+      display: flex;
+      align-items: center;
+      gap: 12px;
+
+      span{ color: var(--text-main); }
+
+      .Versions_back{
+        @include Mixin.Ghost_Button;
+        height: 34px;
+        padding: 0 12px 0 8px;
+
+        svg{
+          width: 14px;
+          height: 14px;
+          transform: rotate(90deg);
+        }
+
+        span{
+          font-family: Font.$font_family_sans;
+          font-size: 13px;
+          font-weight: 600;
+          letter-spacing: 0;
+          text-transform: none;
+          color: inherit;
+        }
+      }
+    }
+
+    .Left_Side .Versions_refresh{
+      @include Mixin.Ghost_Button;
+      height: 34px;
+      padding: 0 14px;
+
+      svg{ width: 14px; height: 14px; }
+    }
+  }
+
+  .Versions_section{
+    width: 100%;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .Versions_summary{
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 6px 12px;
+    font-size: 13px;
+    color: var(--text-soft);
+
+    em{
+      font-style: normal;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .Versions_offline{
+      font-size: 11.5px;
+      color: var(--text-faint);
+    }
+  }
+
+  .Versions_error{ font-size: 12.5px; color: var(--danger-color); }
+  .Versions_empty{ font-size: 12.5px; color: var(--text-faint); }
+
+  .Versions_list{
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    border-top: 1px solid var(--line-strong);
+  }
+
+  // Closed shows the version and date; open, the notes.
+  .Versions_item{
+    display: flex;
+    flex-direction: column;
+    border-bottom: 1px solid var(--line);
+
+    .Versions_item_head{
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 16px 0;
+      cursor: pointer;
+
+      &:focus-visible{
+        outline: none;
+        box-shadow: inset 0 0 0 1px var(--accent);
+      }
+    }
+
+    .Versions_item_chevron{
+      width: 20px;
+      height: 20px;
+      padding: 4px;
+      flex-shrink: 0;
+      box-sizing: border-box;
+      display: flex;
+      color: var(--text-soft);
+
+      svg{ width: 100%; height: 100%; }
+    }
+
+    &.expanded .Versions_item_chevron{ transform: rotate(180deg); }
+
+    .Versions_item_title{
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .Versions_item_expand_wrapper{
+      display: grid;
+      grid-template-rows: 0fr;
+    }
+
+    &.expanded .Versions_item_expand_wrapper{ grid-template-rows: 1fr; }
+
+    .Versions_item_expand{
+      overflow: hidden;
+      min-height: 0;
+    }
+
+    .Versions_item_body{
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding: 0 0 24px 30px;
+    }
+
+    .Versions_item_version{
+      font-family: Font.$font_family_display;
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .Versions_item_date{
+      font-size: 13px;
+      color: var(--text-faint);
+    }
+
+    .Versions_item_headline{
+      font-size: 13px;
+      color: var(--text-soft);
+    }
+
+    .Versions_badge{
+      @include Mixin.Caption(11px);
+      color: var(--text-soft);
+
+      &.installed{ color: var(--text-main); }
+      &.new{ color: var(--accent); }
+    }
+
+    .Versions_install{
+      @include Mixin.Solid_Button;
+      height: 32px;
+      padding: 0 14px;
+      font-size: 12.5px;
+    }
+  }
+}

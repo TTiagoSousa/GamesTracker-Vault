@@ -1,0 +1,21 @@
+{
+  "menu": {
+    "home": "Home",
+    "settings": "Settings",
+    "admin": "Admin",
+    "stats": "Stats",
+    "assistant": "Assistant"
+  },
+  "sidebar": {
+    "menu": "Menu",
+    "lightMode": "Light mode",
+    "darkMode": "Dark mode",
+    "logout": "Log out",
+    "search": "Search",
+    "account": "My account",
+    "assistantKey": "Assistant (Claude)",
+    "help": "Help",
+    "androidApp": "Android app",
+    "changeServer": "Change server"
+  }
+}

@@ -1,0 +1,26 @@
+@use 'Global';
+
+// Theme-reactive shapes: (night, day).
+// Colours live in Colors/Tokens.scss — only borders, shadows and radii here.
+$theme: (
+  'card-border': (
+    1px solid rgba(255, 255, 255, .08),
+    1px solid rgba(20, 20, 28, .10)
+  ),
+
+  // Resting blocks have no shadow. Only floating things do (menus, modals, toasts).
+  'card-box-shadow': (
+    'none',
+    'none'
+  ),
+  'float-shadow': (
+    '0 8px 24px rgba(0, 0, 0, .5)',
+    '0 8px 24px rgba(20, 20, 28, .14)'
+  ),
+);
+
+$fixed: (
+  'border-radius': Global.$border-radius,
+  'ctrl-radius':   Global.$ctrl-radius,
+  'spine-radius':  Global.$spine-radius,
+);

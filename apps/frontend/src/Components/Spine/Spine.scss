@@ -1,0 +1,68 @@
+@use '../../Styles/Fonts.scss' as Font;
+
+// Spine: vertical strip with the height given by the parent (the shelf), with the title
+// printed upright — bottom to top, like on real boxes — and a status
+// label at the top.
+.Spine{
+  position: relative;
+  flex: 0 0 auto;
+  width: 44px;
+  height: var(--spine-height, 100%);
+  align-self: flex-end;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-sizing: border-box;
+  padding: 10px 0 12px;
+  border-radius: var(--spine-radius);
+  background: var(--spine-color);
+  color: var(--spine-ink);
+  overflow: hidden;
+
+  // Spine crease: a lighter band along the left edge
+  &::before{
+    content: '';
+    position: absolute;
+    inset: 0 auto 0 5px;
+    width: 2px;
+    background: currentColor;
+    opacity: .18;
+  }
+
+  &.light-ink{ color: var(--spine-ink-dark); }
+
+  .Spine_Status{
+    flex-shrink: 0;
+    width: 22px;
+    height: 22px;
+    margin-bottom: 10px;
+    border-radius: 50%;
+    border: 3px solid currentColor;
+    box-sizing: border-box;
+
+    &.playing{ background: var(--game-status-playing); }
+    &.finished{ background: var(--game-status-finished); }
+    &.beaten{ background: var(--game-status-beaten); }
+  }
+
+  .Spine_Title{
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    font-family: Font.$font_family_display;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: .01em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-height: 100%;
+  }
+
+  // Empty slot: the outline of a box that isn't there yet
+  &.empty{
+    background: transparent;
+    border: 2px dashed var(--line-strong);
+
+    &::before{ display: none; }
+  }
+}

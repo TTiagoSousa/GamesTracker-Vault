@@ -1,0 +1,47 @@
+{
+  "title": "Inicio",
+  "greeting": "Hola, {{name}}",
+  "empty": {
+    "description": "Busca juegos con la lupa, arriba, y ponlos en la estantería."
+  },
+  "count_one": "{{count}} juego",
+  "count_other": "{{count}} juegos",
+  "loadFailed": "No se pudo cargar tu estantería. Recarga la página para volver a intentarlo.",
+  "shelves": {
+    "playing": "Jugando",
+    "done": "Terminados",
+    "later": "Por jugar",
+    "dropped": "Abandonados"
+  },
+  "emptyShelf": {
+    "playing": "Ningún juego a medias. En la página de un juego, elige \"Jugando\".",
+    "done": "Aún no has terminado ninguno.",
+    "later": "La lista está vacía. Guarda aquí los juegos que quieres jugar con \"Más tarde\".",
+    "dropped": "Ningún juego abandonado."
+  },
+  "hours": "{{hours}} h",
+  "random": {
+    "title": "¿No sabes a qué jugar?",
+    "description": "Saca uno de tu lista o descubre uno bien valorado.",
+    "fromList_one": "De mi lista ({{count}})",
+    "fromList_other": "De mi lista ({{count}})",
+    "discover": "Descubrir uno nuevo",
+    "searching": "Buscando…",
+    "placeholder": "Elige una de las opciones y aquí aparecerá un juego.",
+    "emptyList": "Tu lista está vacía. Marca juegos como \"Más tarde\" o descubre uno nuevo.",
+    "source": {
+      "list": "De tu lista",
+      "discover": "Descubierto en IGDB"
+    },
+    "open": "Abrir el juego",
+    "rating": "nota {{rating}}"
+  },
+  "spotlight": {
+    "label": "Destacado",
+    "open": "Abrir el juego",
+    "prev": "Anterior",
+    "next": "Siguiente",
+    "goTo": "Mostrar {{name}}",
+    "rating": "{{rating}}/10"
+  }
+}

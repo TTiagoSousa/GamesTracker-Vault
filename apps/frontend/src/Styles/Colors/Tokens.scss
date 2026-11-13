@@ -1,0 +1,87 @@
+@use 'Global';
+
+// ---------------------------------------------------------------------------
+// Theme-reactive tokens: css-var-name => (night value, day value).
+//
+// Names describe the colour's ROLE, not where it is used. A new component uses
+// these — if none fits, add a token here, never a loose hex.
+// ---------------------------------------------------------------------------
+$theme: (
+  // --- Surfaces, from deepest to most raised ---
+  'bg':        (Global.$night-bg,        Global.$day-bg),
+  'surface':   (Global.$night-surface,   Global.$day-surface),
+  'surface-2': (Global.$night-surface-2, Global.$day-surface-2),
+  'surface-3': (Global.$night-surface-3, Global.$day-surface-3),
+
+  // --- Lines ---
+  'line':        (Global.$night-line,   Global.$day-line),
+  'line-strong': (Global.$night-line-2, Global.$day-line-2),
+
+  // --- Text, from strongest to faintest ---
+  'text-main':  (Global.$night-text,  Global.$day-text),
+  'text-soft':  (Global.$night-soft,  Global.$day-soft),
+  'text-faint': (Global.$night-faint, Global.$day-faint),
+
+  // --- Accent (ember) ---
+  'accent':        (Global.$night-accent,        Global.$day-accent),
+  'accent-bright': (Global.$night-accent-bright, Global.$day-accent-bright),
+  'accent-deep':   (Global.$night-accent-deep,   Global.$day-accent-deep),
+  'accent-soft':   (rgba(255, 138, 31, .14),     rgba(212, 95, 0, .10)),
+  'on-accent':     (#1A0C00,                     #FFFFFF),
+
+  // --- Top bar: dark in both themes, like a game's menu bar ---
+  'bar-bg':   (#0E0E12, #16161D),
+  'bar-text': (#F2F0EC, #F2F0EC),
+  'bar-soft': (#8F8D97, #A3A1AB),
+  'bar-line': (rgba(255, 255, 255, .08), rgba(255, 255, 255, .10)),
+
+  // --- Login: the dark stage holding the shelf ---
+  'stage-bg':   (#08080B, #16161D),
+  'stage-text': (#F2F0EC, #F2F0EC),
+  'stage-soft': (#A9A7B0, #A9A7B0),
+  'stage-line': (rgba(255, 255, 255, .08), rgba(255, 255, 255, .12)),
+
+  // --- Over game art (heroes, backdrops): the page colour the art fades into ---
+  'hero-fade': (#0E0E12, #ECECEF),
+
+  // --- Game statuses ---
+  // The same colours everywhere: spines, legends, Home shelves.
+  'game-status-playing':  (Global.$playing-night,  Global.$playing-day),
+  'game-status-finished': (Global.$finished-night, Global.$finished-day),
+  'game-status-beaten':   (Global.$beaten-night,   Global.$beaten-day),
+  'game-status-dropped':  (Global.$dropped-night,  Global.$dropped-day),
+  'game-status-later':    (#5AA9FF, #2A78D6),
+
+  // --- Semantic ---
+  'success':           (Global.$success-night, Global.$success-day),
+  'danger-color':      (Global.$danger-night,  Global.$danger-day),
+  'danger-color-soft': (rgba(255, 107, 107, .14), rgba(198, 40, 40, .09)),
+
+  'alert-success-background': (Global.$success-night, Global.$success-day),
+  'alert-warning-background': (Global.$warning-night, Global.$warning-day),
+  'alert-error-background':   (Global.$danger-night,  Global.$danger-day),
+  'alert-info-background':    (Global.$info-night,    Global.$info-day),
+);
+
+// Only what is truly identical in both themes goes here.
+$fixed: (
+  'overlay-scrim': rgba(6, 6, 9, .66),
+
+  // Text laid over game art, whatever the theme
+  'art-ink':  #F6F4F0,
+  'art-soft': rgba(246, 244, 240, .74),
+  'art-scrim': rgba(8, 8, 11, .55),
+
+  // Decorative spine colours — the same in both themes, like real cases.
+  'spine-1': #E8590C,
+  'spine-2': #FFB020,
+  'spine-3': #149A5C,
+  'spine-4': #7653EE,
+  'spine-5': #5C5E70,
+  'spine-6': #2A2A33,
+  'spine-ink': #FFFFFF,
+  'spine-ink-dark': #16161D,
+
+  // Text on top of the status colours (yellow, green, magenta)
+  'status-ink': #16161D,
+);

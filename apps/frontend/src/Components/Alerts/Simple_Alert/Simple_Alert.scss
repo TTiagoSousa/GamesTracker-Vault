@@ -1,0 +1,91 @@
+@use '../../../Styles/Fonts.scss' as Font;
+
+// Toast: a plain surface with a bar in the type's colour on the left.
+.Simple_Alert {
+  --alert-color: var(--alert-info-background);
+
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 12px 12px 16px;
+  border-left: 3px solid var(--alert-color) !important;
+  border-radius: var(--ctrl-radius);
+  min-width: 280px;
+  max-width: min(400px, calc(100vw - 32px));
+  box-sizing: border-box;
+  overflow: hidden;
+  background: var(--surface);
+  border: var(--card-border);
+  box-shadow: var(--float-shadow);
+  font-family: Font.$font_family_sans;
+  animation: sa-fade-in .15s ease-out forwards;
+
+  &--exit {
+    animation: sa-fade-out .3s ease forwards;
+  }
+
+  &--success { --alert-color: var(--alert-success-background); }
+  &--error   { --alert-color: var(--alert-error-background); }
+  &--warning { --alert-color: var(--alert-warning-background); }
+  &--info    { --alert-color: var(--alert-info-background); }
+
+  &__body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  &__label {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-main);
+  }
+
+  &__message {
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--text-soft);
+    word-break: break-word;
+  }
+
+  &__close {
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    border: none;
+    border-radius: var(--ctrl-radius);
+    background: none;
+    color: var(--text-faint);
+    cursor: pointer;
+    padding: 6px;
+    box-sizing: border-box;
+
+    &:hover { color: var(--text-main); }
+  }
+
+  @media (max-width: 600px) {
+    left: 16px;
+    right: 16px;
+    top: 16px;
+    min-width: 0;
+    max-width: none;
+  }
+}
+
+@keyframes sa-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes sa-fade-out {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
