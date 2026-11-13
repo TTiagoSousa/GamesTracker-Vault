@@ -67,9 +67,50 @@ jobs:
         with:
           context: .
           push: false
+          load: true
           platforms: linux/amd64
+          # The tag the compose file asks for, so it uses this build instead of pulling.
+          tags: ghcr.io/ttiagosousa/gamestracker-vault:ci
+          build-args: APP_VERSION=v0.0.0
           cache-from: type=gha
           cache-to: type=gha,mode=max
+      # Starts the real compose file with this image and PostgreSQL, as a user would, and
+      # checks that the app answers, serves the web app and accepts the first account.
+      - name: Start with docker compose
+        working-directory: deploy/docker
+        run: |
+          {
+            echo "DB_PASSWORD=$(openssl rand -hex 16)"
+            echo "JWT_SECRET=$(openssl rand -hex 32)"
+            echo "TOKEN_ENCRYPTION_KEY=$(openssl rand -base64 32)"
+            echo "ADMIN_USERNAME=admin"
+            echo "ADMIN_PASSWORD=ci-password-123"
+            echo "VERSION=ci"
+          } > .env
+          docker compose up -d
+      - name: Wait until healthy
+        working-directory: deploy/docker
+        run: |
+          for i in $(seq 1 40); do
+            state="$(docker inspect -f '{{.State.Health.Status}}' "$(docker compose ps -q app)" 2>/dev/null || true)"
+            [ "$state" = healthy ] && exit 0
+            sleep 3
+          done
+          docker compose logs app
+          exit 1
+      - name: Check the app
+        run: |
+          curl -fsS http://127.0.0.1:8080/api/health | tee /dev/stderr | grep -q '"app":"gametracker-vault"'
+          curl -fsS http://127.0.0.1:8080/ | grep -qi '<div id="root"'
+          curl -fsS -o /dev/null http://127.0.0.1:8080/Vault/Home
+          curl -fsSI http://127.0.0.1:8080/downloads/gametracker-vault.apk | grep -qi 'android.package-archive'
+          code="$(curl -s -o /dev/null -w '%{http_code}' -H 'Content-Type: application/json' \
+            -d '{"username":"admin","password":"ci-password-123"}' http://127.0.0.1:8080/api/auth/login)"
+          [ "$code" = 200 ] || { echo "login returned $code"; exit 1; }
+      - name: Logs on failure
+        if: failure()
+        working-directory: deploy/docker
+        run: docker compose logs
 
   scripts:
     name: Shell scripts
