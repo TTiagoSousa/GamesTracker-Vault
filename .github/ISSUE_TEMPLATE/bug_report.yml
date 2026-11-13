@@ -1,0 +1,64 @@
+name: Bug report
+description: Something does not work as it should.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting. Security problems go through a private report instead
+        (Security → Report a vulnerability), never a public issue.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you did, what you expected and what happened instead.
+      placeholder: |
+        1. Open a game page
+        2. Set the status to Finished
+        3. The page shows an error instead of saving
+    validations:
+      required: true
+  - type: input
+    id: server-version
+    attributes:
+      label: Server version
+      description: Admin → Versions, or the "version" in /api/health.
+      placeholder: v1.0.0
+    validations:
+      required: true
+  - type: dropdown
+    id: install
+    attributes:
+      label: How the server is installed
+      options:
+        - Docker (install script or compose)
+        - Proxmox (LXC script)
+        - Manual / other
+        - Development (npm run dev)
+    validations:
+      required: true
+  - type: input
+    id: app-version
+    attributes:
+      label: Android app version
+      description: Help → Android app. Leave empty if the problem is not in the app.
+      placeholder: 1.0.0
+  - type: input
+    id: android
+    attributes:
+      label: Android version and phone
+      placeholder: Android 15, Pixel 8
+  - type: input
+    id: browser
+    attributes:
+      label: Browser (web app)
+      placeholder: Firefox 140 on Windows
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: |
+        Docker: `docker compose logs --tail 200 app`.
+        Proxmox: `journalctl -u gametracker -n 200`; for updates, /var/lib/gametracker/updates/update.log.
+        Remove passwords, tokens and addresses you do not want to share.
+      render: text

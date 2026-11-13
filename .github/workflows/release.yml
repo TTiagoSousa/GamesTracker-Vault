@@ -1,0 +1,153 @@
+# Runs when a release tag (vX.Y.Z) is pushed — npm run release -- --push creates it:
+#   1. Docker image for amd64 and arm64, pushed to GitHub Container Registry
+#      (ghcr.io/<owner>/gamestracker-vault: X.Y.Z, X.Y, X and latest)
+#   2. The signed Android APK of that version
+#   3. The GitHub release, with the notes from releases/<tag>/en.md and the APK attached
+#
+# Signing the APK needs these repository secrets (Settings → Secrets and variables →
+# Actions). Without them, the release attaches the APK committed in the repository.
+#   ANDROID_KEYSTORE_BASE64    base64 of android-release.jks
+#   ANDROID_KEYSTORE_PASSWORD  its storePassword
+#   ANDROID_KEY_ALIAS          its keyAlias (gametracker)
+#   ANDROID_KEY_PASSWORD       its keyPassword
+name: Release
+
+on:
+  push:
+    tags: ['v[0-9]+.[0-9]+.[0-9]+']
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  image:
+    name: Docker image
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Image name (registry names are lowercase)
+        run: echo "IMAGE=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/gamestracker-vault" >> "$GITHUB_ENV"
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE }}
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=raw,value=latest
+      - name: Build date
+        run: echo "BUILD_DATE=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_ENV"
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          platforms: linux/amd64,linux/arm64
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            APP_VERSION=${{ github.ref_name }}
+            APP_COMMIT=${{ github.sha }}
+            APP_BUILD_DATE=${{ env.BUILD_DATE }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  apk:
+    name: Android APK
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: gradle
+      - name: The app version must be the tag's
+        run: |
+          app="$(sed -n 's/^APP_VERSION_NAME=//p' apps/android/gradle.properties)"
+          [ "v$app" = "$GITHUB_REF_NAME" ] || { echo "::error::APP_VERSION_NAME is $app, the tag is $GITHUB_REF_NAME. Run npm run release -- --prepare first."; exit 1; }
+      - name: Signing key
+        id: key
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          if [ -z "$KEYSTORE_BASE64" ]; then
+            echo "::warning::No signing secrets: the release attaches the APK committed in the repository."
+            echo "signed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.jks"
+          {
+            echo "storeFile=$RUNNER_TEMP/release.jks"
+            echo "storePassword=$KEYSTORE_PASSWORD"
+            echo "keyAlias=$KEY_ALIAS"
+            echo "keyPassword=$KEY_PASSWORD"
+          } > "$RUNNER_TEMP/keystore.properties"
+          echo "signed=true" >> "$GITHUB_OUTPUT"
+      - name: Build the signed APK
+        if: steps.key.outputs.signed == 'true'
+        env:
+          CI: 'true'
+          GAMETRACKER_KEYSTORE_PROPERTIES: ${{ runner.temp }}/keystore.properties
+        run: node scripts/build-android.mjs
+      - name: Check the committed APK
+        if: steps.key.outputs.signed != 'true'
+        run: |
+          built="$(node -p "require('./apps/frontend/public/downloads/android.json').version")"
+          [ "v$built" = "$GITHUB_REF_NAME" ] || echo "::warning::The committed APK is $built, not ${GITHUB_REF_NAME#v}."
+      - name: Name it after the version
+        run: cp apps/frontend/public/downloads/gametracker-vault.apk "gamestracker-vault-${GITHUB_REF_NAME}.apk"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: apk
+          path: gamestracker-vault-${{ github.ref_name }}.apk
+      - name: Remove the key
+        if: always()
+        run: rm -f "$RUNNER_TEMP/release.jks" "$RUNNER_TEMP/keystore.properties"
+
+  release:
+    name: GitHub release
+    needs: [image, apk]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: apk
+      - name: Create the release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          tag="$GITHUB_REF_NAME"
+          image="ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/gamestracker-vault"
+          notes="releases/$tag/en.md"
+          if [ -f "$notes" ]; then
+            title="$(head -n 1 "$notes")"
+            tail -n +2 "$notes" > body.md
+          else
+            title="$tag"
+            : > body.md
+          fi
+          {
+            echo
+            echo "### Install or update"
+            echo "- Docker: \`docker compose pull && docker compose up -d\` (image \`$image:${tag#v}\`)"
+            echo "- Proxmox: \`gametracker-update\` in the container, or Admin → Versions in the app"
+            echo "- Android: the attached APK; installed apps offer the update by themselves"
+          } >> body.md
+          gh release create "$tag" "gamestracker-vault-$tag.apk" \
+            --title "$tag · $title" --notes-file body.md --verify-tag

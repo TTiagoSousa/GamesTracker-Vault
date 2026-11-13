@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security problem
+    url: https://github.com/TTiagoSousa/GamesTracker-Vault/security/advisories/new
+    about: Report it privately, never in a public issue.
+  - name: Install and setup help
+    url: https://github.com/TTiagoSousa/GamesTracker-Vault/blob/main/docs/troubleshooting.md
+    about: The troubleshooting guide answers the most common problems.

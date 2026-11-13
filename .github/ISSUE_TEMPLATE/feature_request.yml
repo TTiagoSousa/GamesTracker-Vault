@@ -1,0 +1,29 @@
+name: Feature request
+description: An idea for something new or better.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What you want to do
+      description: The situation and what is missing today, from your point of view.
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: How it could work
+      description: A rough idea is enough; screenshots or sketches help.
+  - type: dropdown
+    id: area
+    attributes:
+      label: Part of the app
+      options:
+        - Library and game pages
+        - Search
+        - Stats
+        - Assistant
+        - Android app
+        - Installation and updates
+        - API
+        - Other

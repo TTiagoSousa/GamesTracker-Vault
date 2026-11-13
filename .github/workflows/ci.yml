@@ -1,0 +1,80 @@
+# Checks every pull request and every push to the long-lived branches: lint, tests and
+# builds of the server and the web app, the Android app (both builds), the Docker image
+# and the shell scripts.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [develop, staging, main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  server-web:
+    name: Server and web app
+    runs-on: ubuntu-latest
+    env:
+      # prisma.config.ts reads it even to generate the client; nothing connects.
+      DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npm run build:shared
+      - name: Generate the Prisma client
+        run: npx prisma generate
+        working-directory: apps/backend
+      - run: npm run lint
+      - run: npm test
+      - name: Build the server
+        run: npm run build -w @gametracker/backend
+      - name: Build the web app
+        run: npm run build -w @gametracker/frontend
+        env:
+          VITE_API_URL: /api
+
+  android:
+    name: Android app
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: gradle
+      - name: Build (self-update and F-Droid) and lint
+        working-directory: apps/android
+        run: ./gradlew assembleSelfupdateDebug assembleFdroidDebug lintSelfupdateDebug --console=plain
+
+  docker:
+    name: Docker image
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: Build (not pushed)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          platforms: linux/amd64
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  scripts:
+    name: Shell scripts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: shellcheck
+        run: shellcheck --severity=error deploy/proxmox/*.sh deploy/docker/*.sh
