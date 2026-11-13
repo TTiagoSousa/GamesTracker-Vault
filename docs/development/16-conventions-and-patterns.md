@@ -227,7 +227,6 @@ Found while reading the code. None of this is broken; they're loose ends.
 | Duplicated statuses | `LIBRARY_STATUSES` (frontend, `detailTypes.ts`) copies the Prisma `LibraryStatus` enum by hand, instead of coming from `packages/shared` like `ROLES` |
 | Literal radii (game page) | shelf panel rating buttons (8px), `Game_Shelf` count (6px), play time bars (4px) |
 | Literal radii (new pages) | Stats legend keys (3px), spines of the per-year stacks (3px), hours and ratings bars (4px), Assistant search pills and the Help "Admin only" label (6px) |
-| Conversation only in the browser | the assistant history lives in `sessionStorage` (`assistant-chat:<username>`): it's lost when the tab closes, doesn't move to another device and there's no conversation list. Each question resends the last 40 messages in full |
 | Minimal `Markdown` | no tables, quotes, images, nested lists or HTML; a model reply with a table shows as text with pipes |
 | Native controls in `Ai_Card` | provider and model are native `<select>`s, not `Global_Dropdown`; the account and `Ai_Card` fields are `<input>`s with `Control_Surface`, not `Global_Input` |
 | Retries in `Auth_Context` | `refreshUser` repeats `GET /auth/me` twice (1.5 s and 3 s) on any error other than 401; with the server down, the loading page stays up to ~4.5 s and ends at the login, without saying the problem is the connection. It also delays `changeUsername` when the network fails |
@@ -236,14 +235,15 @@ Found while reading the code. None of this is broken; they're loose ends.
 ### Backend
 | Item | Detail |
 |---|---|
-| Few tests | Jest configured (with `src/…` mapped); two `.spec.ts`: `buildSearchQuery` and `estimateHours` (15 tests in total). The rest of the helpers have no tests — including the pure `mapGameDetail`, `mapEntry` and `buildSystemPrompt`, the date rule in `saveLibraryEntry`, the maths in `getLibraryStats`, the "last administrator" rules in `updateUserByAdmin`/`deleteUserByAdmin` and the tool loop in `streamChat` (and the SSE parser in `anthropic.client`) |
+| Few tests | Jest configured (with `src/…` mapped); two `.spec.ts`: `buildSearchQuery` and `estimateHours` (15 tests in total). The rest of the helpers have no tests — including the pure `mapGameDetail`, `mapEntry` and `buildSystemPrompt`, the date rule in `saveLibraryEntry`, the maths in `getLibraryStats`, the "last administrator" rules in `updateUserByAdmin`/`deleteUserByAdmin`, the tool loop in `streamChat` (and the SSE parser in `anthropic.client`) and the question/answer cycle in `AiService` and `ChatRuns` |
+| Answers in progress in memory | an answer being written exists only in the `ChatRuns` of the process that started it (one per conversation): a restart cuts it short (it keeps the text saved in the last 3 seconds and gets `error: 'interrupted'`), and with several backend instances a stream or stop landing on another one wouldn't find it |
 | Game detail cache by insertion order | at 200 games the first one in goes out, not the least used; expired entries aren't removed — they take up space until replaced (the same id requested again) or they reach the front of the queue |
 | Unused field | `IgdbGameDetail.artworks` is declared in `mapGameDetail.ts` but isn't requested in `DETAIL_FIELDS` nor used |
 | Orphaned game copies | `Game` rows are never deleted — removing the last user of a game leaves the copy (and the `RESTRICT` FK would prevent deleting it while entries existed) |
 | 401 retry outside the queue | when IGDB answers 401, `IgdbClient` retries the request immediately, within the same queue turn, without waiting the 260 ms |
 | `LoginDto` | exists but the controller uses `LocalAuthGuard`, which reads from the body directly |
 | `compare.passwords.ts` | `comparePasswords` is only used by `changeOwnPassword`; `validateUser` still calls `bcrypt.compare` directly |
-| `ai/` outside the four layers | `AiSettingsRepository` is a Prisma class without an interface (`repositories/ai-settings-repository.ts`, no `prisma/`); the Anthropic client is loose functions, not an injectable provider; `aiSettings.ts` has four functions in one file |
+| `ai/` outside the four layers | `AiSettingsRepository` and `AiChatRepository` are Prisma classes without an interface (`repositories/`, no `prisma/`); the Anthropic client is loose functions, not an injectable provider; `aiSettings.ts` has four functions in one file; the conversation logic (`ask`, `follow`, `write`) lives in `AiService` instead of helpers |
 | Logic in the service | `LibraryService.discover` reads the shelf and calls `games.random` without its own helper |
 | Inconsistent name validation | `PATCH /user/me` and `PATCH /user/:id` require 3–32 characters without spaces (`/^[\p{L}\p{N}._-]+$/u`), but `register` and `POST /user` only require 3 characters — you can create a name that then can't be saved without changing it |
 | One query per request | `JwtStrategy` reads the user from the database on every authenticated request (by primary key — cheap, but uncached) |

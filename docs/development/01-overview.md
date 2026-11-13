@@ -99,15 +99,18 @@ A single repository (public on GitHub, `TTiagoSousa/GamesTracker-Vault`), a mono
 ## What it is **not** (yet)
 
 - It isn't an IGDB mirror: the database has `User`, `Integration`, `Game` (the minimal
-  copy of games that are on some shelf), `LibraryEntry` and `AiSettings` (each user's
-  assistant key and model). Search and the game page always go to the API; there's no
+  copy of games that are on some shelf), `LibraryEntry`, `AiSettings` (each user's
+  assistant key and model) and `AiConversation`/`AiMessage` (the assistant
+  conversations). Search and the game page always go to the API; there's no
   play-session history nor custom lists beyond the shelf.
-- Assistant conversations aren't kept on the server: they live in the browser tab
-  (`sessionStorage`) and are lost when it's closed.
+- Assistant answers being written live in the memory of one backend process: a restart
+  cuts them short (they're saved as `interrupted`), and several instances couldn't share
+  them.
 - Two external services: IGDB (via Twitch, installation credentials) and the Anthropic
-  API (each user's key, only for the assistant). No schedulers or background work — the
-  games' genres and average times are refreshed when the stats are opened or when
-  talking to the assistant.
+  API (each user's key, only for the assistant). No schedulers; the only background work
+  is the assistant writing an answer after `POST /ai/chat` returns — the games' genres
+  and average times are refreshed when the stats are opened or when talking to the
+  assistant.
 - It doesn't scale horizontally without work: the releases cache (`getReleases`), the
   filter options cache (`listFilters`), the game records cache (`getGameDetail`), the
   credentials cache (`IntegrationCredentialsService`),

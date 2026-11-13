@@ -65,7 +65,8 @@ under `/api`. On Proxmox, nginx serves the files and forwards `/api/*` to the se
 PostgreSQL, with migrations in `apps/backend/prisma/migrations` applied on every start or
 update. Main tables: `User`, `LibraryEntry` (a game on a user's shelf: status, hours,
 dates, rating, notes, platform), `Game` (cached IGDB facts), `Integration` (IGDB
-credentials, encrypted), `AiSettings` (per-user assistant key, encrypted), `ApiToken`,
+credentials, encrypted), `AiSettings` (per-user assistant key, encrypted),
+`AiConversation` and `AiMessage` (each user's assistant conversations), `ApiToken`,
 `BackupSettings`. Details in [development/03-data-model.md](./development/03-data-model.md).
 
 Secrets stored in the database are encrypted with AES-256-GCM using

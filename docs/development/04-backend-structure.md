@@ -155,14 +155,19 @@ argument. It uses raw `fetch` (no SDK), parses the SSE stream by hand and transl
 Anthropic's HTTP errors into Nest exceptions with messages in Portuguese.
 
 ### Streaming responses
-A route that returns in chunks (`POST /ai/chat`) uses `@Res()` and writes the response
-itself: `application/x-ndjson` headers, `Cache-Control: no-cache, no-transform` and
-`X-Accel-Buffering: no`, `flushHeaders()` on the first event and one JSON line per
-event. The helper receives an `emit(event)` function and an `AbortSignal` (the
-controller aborts it on the response's `close`), and knows nothing about HTTP. Since
-with `@Res()` Nest no longer handles exceptions, the controller catches them: before the
-first event it responds with the normal HTTP error (`{ statusCode, message }`), after
-that it writes a `{ type: 'error' }` line.
+A route that returns in chunks (`GET /ai/conversations/:id/stream`) uses `@Res()` and
+writes the response itself: `application/x-ndjson` headers,
+`Cache-Control: no-cache, no-transform` and `X-Accel-Buffering: no`, `flushHeaders()` on
+the first event and one JSON line per event, plus a `{ type: 'ping' }` line every 20 s.
+The work that produces the chunks isn't tied to the request: `POST /ai/chat` starts it
+in the background (a `ChatRun` in the `ChatRuns` provider) and returns JSON; the stream
+route only subscribes to the run, and on the response's `close` it unsubscribes without
+aborting. The helper (`streamChat`) receives an `emit(event)` function and an
+`AbortSignal` (aborted by `POST …/stop` or by deleting the conversation), and knows
+nothing about HTTP. Since with `@Res()` Nest no longer handles exceptions, the
+controller catches them: before the first event it responds with the normal HTTP error
+(`{ statusCode, message }`); once the stream has started, errors arrive as
+`{ type: 'error' }` lines from the run.
 
 ### Services shared between modules
 When a module needs data from another, the other exports a small service and the first

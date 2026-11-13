@@ -39,8 +39,9 @@ directly from `images.igdb.com` (and video thumbnails from `i.ytimg.com`). The
 repository the `LibraryModule` exports.
 
 The browser never talks to Anthropic: `POST /ai/chat` goes to the backend, which
-decrypts the user's key, talks to the Anthropic API with streaming (SSE) and sends the
-browser one JSON line per event (NDJSON) as the text arrives.
+saves the question, decrypts the user's key and talks to the Anthropic API with
+streaming (SSE) in the background. The browser follows the answer on
+`GET /ai/conversations/:id/stream`, one JSON line per event (NDJSON) as the text arrives.
 
 ## The four backend layers
 
@@ -59,8 +60,9 @@ repository. `integrations/` follows the four layers, plus a shared service
 (`IntegrationCredentialsService`) that `games/` imports. `library/` follows the four
 layers and imports the `GamesService` from `games/` to fetch from IGDB the minimal copy
 of the games it stores (and, for the stats, the genres and average times). `ai/` has a
-controller, service, helpers and a repository (`AiSettingsRepository`, a Prisma class
-without a separate interface) and, like `games/`, an HTTP client
+controller, service, helpers and two repositories (`AiSettingsRepository` and
+`AiChatRepository`, Prisma classes without a separate interface), an in-memory registry
+of the answers being written (`ChatRuns`) and, like `games/`, an HTTP client
 (`anthropic/anthropic.client.ts` — exported functions, not a class) for the Anthropic API.
 
 ## Structural decisions
@@ -102,12 +104,23 @@ immediately, without waiting for the token's 7 days: a deleted user gets 401
 key).
 
 ### Assistant streaming
-`POST /ai/chat` doesn't return JSON: it writes to the response (`@Res()`) one line per
-event (`application/x-ndjson`; `text`, `tool`, `error`, `done`) and sends it right away
-(`flushHeaders`, `X-Accel-Buffering: no`; the CT's nginx already has
-`proxy_buffering off`). An error before the first event goes out as a normal HTTP error;
-midway, as an `error` line. If the browser closes the connection (stop, leaving the
-page), an `AbortController` cancels the request to Anthropic.
+The answer is not tied to an HTTP connection. `POST /ai/chat` checks the key, saves the
+question and an empty `pending` answer, starts a `ChatRun` (in `ChatRuns`, one per
+conversation) and returns JSON right away; the run talks to Anthropic on its own and
+saves the answer (`content`, `tools`, `error`) when it ends. A second question in the
+same conversation while one is running gets 409.
+
+`GET /ai/conversations/:id/stream` follows the run: it writes to the response (`@Res()`)
+one line per event (`application/x-ndjson`; `snapshot`, `text`, `tool`, `error`, `ping`,
+`done`) and sends it right away (`flushHeaders`, `X-Accel-Buffering: no`; the CT's nginx
+already has `proxy_buffering off`). The first line is a `snapshot` with what is written
+so far — or the last saved answer if nothing is running — so a page that comes back
+catches up; a `ping` every 20 s keeps proxies from closing a quiet connection. Closing
+the stream only stops following; `POST /ai/conversations/:id/stop` aborts the run (its
+`AbortController` cancels the request to Anthropic; with no text yet the error is
+`stopped`). Errors before the stream starts go out as normal HTTP errors; midway, as an
+`error` line. On startup (`onModuleInit`) any answer still `pending` is marked
+`error: 'interrupted'`.
 
 ### Android app: a WebView connected to the server
 The Android app (`apps/android`) doesn't ship the interface inside the APK: it's a
@@ -129,11 +142,14 @@ There are several pieces of state in process memory:
 - `IntegrationCredentialsService` — the decrypted credentials, until the admin changes
   them;
 - `IgdbClient` — the Twitch token and the **queue** that spaces IGDB requests 260 ms
-  apart (≈ 4 per second, the API limit).
+  apart (≈ 4 per second, the API limit);
+- `ChatRuns` — the assistant answers being written, with their text so far and the
+  streams following them.
 
 With two instances each would do its own fetch and have its own cache (harmless), but
-credential invalidation would only reach the instance that received the request, and
-the two queues combined would exceed IGDB's 4 requests/s limit. Until there's more, the
+credential invalidation would only reach the instance that received the request, the
+two queues combined would exceed IGDB's 4 requests/s limit, and a stream (or stop)
+landing on another instance wouldn't find the answer being written. Until there's more, the
 rule is: **one process**. New features that keep state in memory or run on cron must
 take this into account.
 

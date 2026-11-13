@@ -188,10 +188,19 @@ Each user's own Claude key and model.
 | PUT | `/ai/settings` | `{ apiKey?, model }` | the settings; a new key is tested with Anthropic before it is saved |
 | DELETE | `/ai/settings` | — | the settings, without a key |
 | POST | `/ai/models` | `{ apiKey? }` | the models the key can use |
-| POST | `/ai/chat` | `{ messages: [{ role, content }], language? }` | a stream, one JSON object per line: `text`, `tool`, `error`, `done` |
+| POST | `/ai/chat` | `{ content, conversationId?, language? }` | `{ conversation, question, answer }` — without `conversationId` a new conversation starts; the answer is written on the server |
+| GET | `/ai/conversations` | — | `[{ id, title, updatedAt, running }]`, the latest first (up to 100) |
+| GET | `/ai/conversations/:id` | — | the conversation with its `messages: [{ id, role, content, tools, error, pending }]` |
+| GET | `/ai/conversations/:id/stream` | — | the answer being written, one JSON object per line: `snapshot`, `text`, `tool`, `error`, `ping`, `done` |
+| POST | `/ai/conversations/:id/stop` | — | stops the answer being written |
+| DELETE | `/ai/conversations/:id` | — | deletes the conversation |
 
-The server doesn't keep conversations: send the whole history every time. `language` is
-`pt-PT`, `en` or `es`.
+Conversations are kept on the server, and the last 40 messages go with each question.
+The answer keeps being written if the connection drops: `/stream` first sends a
+`snapshot` with what is already written (or, if it has ended, the saved answer) and then
+each new piece, until `done`. A `ping` line comes every 20 seconds while nothing else
+does. `error` is a message, or the code `stopped` or `interrupted` (the server restarted
+mid-answer). `language` is `pt-PT`, `en` or `es`.
 
 ## Backups (admin)
 

@@ -57,7 +57,7 @@ environment file — "today" dates computed on the server are in local time.
 (stripping the prefix), so the frontend and the API share the origin. The `/api/` block
 passes `X-Forwarded-Proto` (the one from Nginx Proxy Manager, or the local `$scheme`) and
 has `proxy_buffering off`, `proxy_cache off` and `proxy_read_timeout 1h`, which the
-assistant chat (`POST /ai/chat`, streaming NDJSON) needs — the backend also sends
+assistant's stream (`GET /ai/conversations/:id/stream`, NDJSON) needs — the backend also sends
 `X-Accel-Buffering: no`. Nothing needs to change in nginx for the assistant. `index.html`
 and `env-config.js` are served without cache; `/assets/` with immutable cache;
 `client_max_body_size 300m`.

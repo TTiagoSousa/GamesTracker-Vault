@@ -53,7 +53,7 @@ apps/frontend/
 │   ├── Containers/
 │   │   ├── Navigation/Top_Nav/   Top_Nav · Menu_Items
 │   │   └── Navigation/Bottom_Nav/ navigation fixed at the bottom, only below 760px
-│   ├── Assets/Icons/       22 icons, one SVG component each
+│   ├── Assets/Icons/       23 icons, one SVG component each
 │   ├── Imports/            barrels: icons · publicPages · privatePages · intermediaryPages
 │   ├── Service/            httpService (axios) · endPoints · androidApp (Android app detection and the bridge)
 │   ├── Styles/             Colors/ · Formats/ · Fonts · Mixins
@@ -151,9 +151,11 @@ search only appends the query string to `Games_Search_Endpoint()`). Internal lin
 game page (`/Vault/Game/${id}`) are frontend routes, written where they're used
 (`Game_Result`, `Game_Shelf`, Home, `Random_Pick`, Stats, `Game`, `Markdown`).
 
-The only exception to axios is the assistant chat: `useAssistantChat` uses `fetch`
-(`${BASE_URL}${Ai_Chat_Endpoint()}`, `credentials: 'include'`) to read the streamed
-response, line by line, and an `AbortController` to stop it.
+The only exception to axios is following an assistant answer: `useAssistantChat` uses
+`fetch` (`${BASE_URL}${Ai_Conversation_Stream_Endpoint(id)}`, `credentials: 'include'`)
+to read the streamed response, line by line, and an `AbortController` to stop following
+it (the answer itself is stopped with `POST Ai_Conversation_Stop_Endpoint(id)`). The
+question (`Ai_Chat_Endpoint`), the list and the deletes go through axios.
 
 ## API URL configuration
 
@@ -248,7 +250,8 @@ credentials; toast on writes **and** on the initial read error), `useLibraryStat
 (`{ stats, failed }`, reading without toast or reload), `useDiscover` (`discover()`
 requests a random game; error in `error`, no toast), `useAiSettings` (reads without
 toast — error in `failed` — and writes with toast: `loadModels`, `save`, `remove`) and
-`useAssistantChat` (the streamed chat, kept in `sessionStorage`). See
+`useAssistantChat` (the saved conversations and the streamed answer; the open
+conversation's id in `localStorage`). See
 [10](./10-frontend-pages.md).
 
 The newer hooks' error message comes from `Hooks/apiMessage.ts`: `apiMessage(error)`

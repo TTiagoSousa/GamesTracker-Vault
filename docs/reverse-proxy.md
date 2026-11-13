@@ -16,8 +16,9 @@ Three things matter for every proxy:
 2. **Trust the proxy.** The header is only believed from trusted addresses (`TRUST_PROXY`,
    see [configuration.md](./configuration.md)). The Docker default trusts private
    networks; the Proxmox install trusts its own nginx, which passes the header on.
-3. **Do not buffer `/api/ai/chat`.** The assistant streams its answers (Server-Sent
-   Events). Turn proxy buffering off and allow long reads (up to an hour).
+3. **Do not buffer `/api/ai/conversations/<id>/stream`.** The assistant streams its
+   answers there (one JSON line per event). Turn proxy buffering off and allow long
+   reads (up to an hour).
 
 Uploads (imports, images) can be large: allow request bodies of at least 300 MB.
 

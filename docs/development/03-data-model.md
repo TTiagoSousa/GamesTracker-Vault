@@ -14,6 +14,7 @@ File: `apps/backend/prisma/schema.prisma`
 | `IntegrationProvider` | `IGDB` | `Integration.provider` — one value per external service |
 | `LibraryStatus` | `PLAYING`, `PAUSED`, `PLAN_TO_PLAY`, `FINISHED_MAIN`, `FINISHED_EXTRAS`, `COMPLETED_100`, `DROPPED` | `LibraryEntry.status`; validated in `SaveLibraryEntryDto`; mirrored in `LIBRARY_STATUSES` in `Hooks/Games/detailTypes.ts` (the frontend doesn't import it from the backend) |
 | `AiProvider` | `ANTHROPIC` | `AiSettings.provider` — the assistant's provider; for now only Claude |
+| `AiMessageRole` | `USER`, `ASSISTANT` | `AiMessage.role`; the API returns it as `'user'`/`'assistant'` |
 
 Home's four shelves group the statuses: **playing** = `PLAYING` and `PAUSED`;
 **finished** = `FINISHED_MAIN`, `FINISHED_EXTRAS` and `COMPLETED_100`; **up next** =
@@ -36,8 +37,9 @@ without `hashedPassword` (`PUBLIC_FIELDS`, type `PublicUser`), and the creation 
 strip it from the result. Only `findByIdWithPassword` reads it, to confirm the current
 password when changing it.
 
-Deleting a user (`DELETE /user/:id`) cascades to the shelf (`LibraryEntry`) and the
-assistant key (`AiSettings`). `JwtStrategy` reads the row on every authenticated
+Deleting a user (`DELETE /user/:id`) cascades to the shelf (`LibraryEntry`), the
+assistant key (`AiSettings`) and the assistant conversations (`AiConversation`, and
+through them `AiMessage`). `JwtStrategy` reads the row on every authenticated
 request, so the session's name and role are always the database's.
 
 ### `Integration`
@@ -126,6 +128,39 @@ with `decryptToken`); `AiSettingsRepository` only stores and returns the encrypt
 (`find`, `save` = upsert, `updateModel`, `remove` = `deleteMany`). Without a row, the API
 answers `configured: false` with the suggested model.
 
+### `AiConversation`
+A conversation with the assistant, kept so it can be picked up again later.
+
+| Field | Type | Notes |
+|---|---|---|
+| `id` | uuid PK | |
+| `userId` | String | FK `User`, `onDelete: Cascade` |
+| `title` | String | the first question, whitespace collapsed, cut to 80 characters (with `…`) |
+| `createdAt` / `updatedAt` | DateTime | `updatedAt` is bumped on every question; the list is ordered by it (`desc`, up to 100) |
+
+Index: `@@index([userId, updatedAt])`. As with the shelf, every query carries the
+`userId` (`findFirst`/`deleteMany` by `{ id, userId }`).
+
+### `AiMessage`
+One message of a conversation, in order of `id`.
+
+| Field | Type | Notes |
+|---|---|---|
+| `id` | Int PK | autoincrement — also the order inside the conversation |
+| `conversationId` | String | FK `AiConversation`, `onDelete: Cascade` |
+| `role` | AiMessageRole | |
+| `content` | String | default `""`; the question, or the answer's text |
+| `tools` | Json? | the IGDB searches made for the answer: `[{ name, query }]`; `null` when there were none |
+| `error` | String? | why the answer failed: the server's message, or the code `stopped` or `interrupted` |
+| `pending` | Boolean | default `false`; `true` while the answer is being written |
+| `createdAt` | DateTime | |
+
+Index: `@@index([conversationId, id])`. Each question creates two rows in one
+transaction (`addTurn`): the question and an empty `pending` answer. The answer's text
+lives in memory (`ChatRun`) while it is written; the text so far is saved every 3
+seconds (`saveProgress`) and the whole answer when it ends (`finishAnswer`). On startup, `interruptPending` turns any row left `pending` into
+`error: 'interrupted'`.
+
 ### `ApiToken`
 Tokens for calling the API from other programs (`Authorization: Bearer gtv_…`, see
 [API.md](../API.md)). Each one acts as its owner, with the owner's role at the time of the
@@ -163,8 +198,8 @@ name (`gametracker-YYYYMMDD-HHMMSS.sql.gz`).
 
 ### Rules for new tables
 
-Domain models follow these rules (`LibraryEntry` and `AiSettings` already follow them,
-except for manual ordering, which neither has):
+Domain models follow these rules (`LibraryEntry`, `AiSettings` and `AiConversation`
+already follow them, except for manual ordering, which none has):
 
 - everything that belongs to a user carries `userId` with `onDelete: Cascade` — deleting
   a user deletes what's theirs;
@@ -173,7 +208,7 @@ except for manual ordering, which neither has):
 
 ## Migrations
 
-Five migrations in `prisma/migrations/`:
+Six migrations in `prisma/migrations/`:
 
 | Migration | What it does |
 |---|---|
@@ -182,6 +217,7 @@ Five migrations in `prisma/migrations/`:
 | `20261009090000_add_library` | `LibraryStatus` enum, `Game` and `LibraryEntry` tables, unique index `(userId, gameId)`, index `(userId, status)` and the two foreign keys (`userId` cascade, `gameId` restrict) |
 | `20261009120000_add_stats_and_ai` | columns `genres` (default `{}`), `ttbMain`, `ttbExtras`, `ttbCompletionist` and `factsCheckedAt` on `Game`; `AiProvider` enum and `AiSettings` table (foreign key `userId` cascade) |
 | `20261111125254_add_api_tokens_and_backups` | `ApiToken` table (unique `tokenHash`, index `userId`, foreign key `userId` cascade) and `BackupSettings` table |
+| `20261113180000_add_assistant_conversations` | `AiMessageRole` enum, `AiConversation` table (index `(userId, updatedAt)`, foreign key `userId` cascade) and `AiMessage` table (index `(conversationId, id)`, foreign key `conversationId` cascade) |
 
 Rule: migrations are **generated** (`npx prisma migrate dev --name <name>` inside
 `apps/backend`), not hand-written. After touching the schema, `npx prisma generate` is

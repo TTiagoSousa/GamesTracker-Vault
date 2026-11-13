@@ -208,11 +208,15 @@ whose ring is coloured like review sites: 85 and up `--game-status-finished`, 70
 
 Exactly the height of the screen and never scrolls as a page. A `1fr 300px` grid (one
 column below 980px): the chat as a `Frame_Surface` on `--surface`, and a side column with
-suggestions and links. The empty chat shows the logo in `--accent` with a slow glow
-(`assistantGlow`, off under reduced motion). The user's messages are bubbles on the right
-in `--accent-soft` with an `--accent-deep` border; the assistant's replies sit on the left
-with no box, next to a round avatar holding the logo. The input is a rounded textarea
-(26px radius) on `--surface-2`, with a round send button.
+the saved conversations, suggestions and links. Below 980px the conversations open from
+a History button in the chat header, as a panel over the messages. A conversation still
+being answered has a pulsing dot (`assistantLive`) in the list. The empty chat shows the
+logo in `--accent` with a slow glow (`assistantGlow`, off under reduced motion). The
+user's messages are bubbles on the right in `--accent-soft` with an `--accent-deep`
+border; the assistant's replies sit on the left with no box, next to a round avatar
+holding the logo; while a reply is being written, a blinking `--accent` block
+(`assistantCaret`) sits at the end of its text. The input is a rounded textarea (26px
+radius) on `--surface-2`, with a round send button.
 
 ### Other screens
 
@@ -230,12 +234,14 @@ mixins.
 | `spotlightIn`, `spotlightText`, `spotlightTimer` | `Home.scss` | spotlight art, text and timer line |
 | `backdropIn` | `Game.scss` | game backdrop fade-in |
 | `assistantGlow` | `Assistant.scss` | assistant intro mark |
+| `assistantLive` | `Assistant.scss` | "still answering" dot in the conversation list, "thinking" text of a reply being written |
+| `assistantCaret` | `Assistant.scss` | cursor at the end of a reply being written |
 | `sa-fade-in`, `sa-fade-out` | `Simple_Alert.scss` | toasts |
 | `Update_Modal_pulse` | `Update_Modal.scss` | update step in progress |
 
 A global rule at the end of `App.scss` cuts every animation and transition to ~0 under
-`prefers-reduced-motion`, and the spotlight, cover lift and assistant glow also switch
-themselves off.
+`prefers-reduced-motion`, and the spotlight, cover lift and the assistant's glow, live
+dot and cursor also switch themselves off.
 
 ## Global details
 

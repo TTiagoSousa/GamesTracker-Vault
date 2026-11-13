@@ -456,40 +456,72 @@ Settings → Assistant  (or /Vault/Assistant without a key → the same Ai_Card)
             no key  → updateModel (400 if there's none at all)
     ◄── AiSettings  →  toast
 
+/Vault/Assistant (arriving)
+    useAssistantChat  →  GET /ai/conversations   ◄── [{ id, title, updatedAt, running }]
+        localStorage['assistant-active:<username>'] still in the list?  →  open(id)
+
 /Vault/Assistant → type and Enter (or a suggestion)
     useAssistantChat.send(text)
-        messages += question + empty reply
-        fetch POST /ai/chat { messages: last 40, language }   (credentials: include)
-            AiController.chat (@Res)
-                streamChat
-                    savedApiKey → decryptToken      (no key → normal 400, JSON)
-                    listEntries + refreshGameFacts
-                    buildSystemPrompt(username, language, shelf up to 400 games)
-                    round 1..6:
-                        streamMessage → POST /v1/messages (stream: true, tools)
-                            SSE: content_block_delta text  →  emit {type:'text'}
-                                                           →  NDJSON line to the browser
-                        stop_reason = tool_use?
-                            emit {type:'tool', name, query}
-                            runGameTool → GamesService.search / detail → IGDB
-                            messages += request + tool_result → new round
-                        otherwise → end
-                    (7th round without tools: it has to answer)
-                    emit {type:'done'}
-                error before the 1st event → HTTP status + { message }
-                error midway               → {type:'error'} line
-        reads line by line: text → appends · tool → "Searching…" pill · error
+        messages += question + empty pending reply   (optimistic)
+        POST /ai/chat { conversationId?, content, language }
+            AiService.ask
+                savedApiKey → decryptToken        (no key → 400, nothing saved)
+                conversationId? → findConversation (404) · already running → 409
+                otherwise      → createConversation(title = question, ≤ 80)
+                history = last 40 messages with text and no error + question
+                addTurn → AiMessage USER + AiMessage ASSISTANT (pending, empty)
+                ChatRuns.start → ChatRun                    ┐ in the background,
+                write(run) — not awaited ───────────────────┤ not tied to any request
+            ◄── 201 { conversation, question, answer }      │
+        messages = saved ones · list: conversation on top   │
+        follow(id)                                          │
+            fetch GET /ai/conversations/:id/stream          │ (credentials: include)
+                AiController.stream (@Res)                  │
+                    run.snapshot()  →  {type:'snapshot'}    │
+                    run.subscribe(emit) ◄───────────────────┤
+                    every 20 s {type:'ping'}                │
+                                                            ▼
+                                     streamChat(apiKey, model, language, history)
+                                         listEntries + refreshGameFacts
+                                         buildSystemPrompt(username, language, shelf ≤ 400)
+                                         round 1..6:
+                                             streamMessage → POST /v1/messages (stream, tools)
+                                                 SSE text delta → run.push {type:'text'}
+                                             stop_reason = tool_use?
+                                                 run.push {type:'tool', name, query}
+                                                 runGameTool → GamesService → IGDB
+                                                 → new round
+                                         (7th round without tools: it has to answer)
+                                     error → run.error (aborted with no text → 'stopped')
+                                     finishAnswer(content, tools, error, pending: false)
+                                     ChatRuns.end → {type:'error'}? + {type:'done'}
+            reads line by line: snapshot → replaces · text → appends
+                                tool → "Searching…" pill · error · done → end
+            connection dropped before done → retry (3×, 1.5 s; snapshot catches up)
         Markdown renders the reply; [Name](game:1942) → Link /Vault/Game/1942
-        at the end: sessionStorage['assistant-chat:<username>'] = conversation
+        at the end: pending = false, GET /ai/conversations
 
-"Stop" / leaving the page
-    AbortController.abort() → the fetch closes
-        backend: res 'close' → controller.abort() → the Anthropic request is cancelled
-"New conversation" → aborts and clears
+Leaving the page and coming back (or another device)
+    leaving → the fetch is aborted → res 'close' → unsubscribe only (the run goes on)
+    back    → GET /ai/conversations/:id   (messages; the pending one with the text so far)
+              running? → GET …/stream → snapshot with everything written so far → follows
+              ended?   → the saved answer is already in the messages
+
+"Stop"
+    POST /ai/conversations/:id/stop → run.controller.abort()
+        the Anthropic request is cancelled; what was written stays (none → 'stopped')
+        the stream brings the final error/done
+
+"New conversation" → stops following, clears the open id; saved with the first question
+History → open(id): reads the conversation, follows it if it's running
+Delete (confirmed in the row)
+    DELETE /ai/conversations/:id → aborts its run, deleteMany (messages cascade)
+Server restart → onModuleInit: interruptPending → pending answers get 'interrupted'
 ```
 
-The conversation is never stored on the server: it is sent in full with every question
-and stays in the tab's `sessionStorage`. The shelf goes in the instructions of each
+Conversations are stored on the server (`AiConversation`, `AiMessage`); the browser only
+remembers which one was open. The answer is written by the server whether or not anyone
+is following it, and saved when it ends. The shelf goes in the instructions of each
 request, with the user's own key.
 
 ---

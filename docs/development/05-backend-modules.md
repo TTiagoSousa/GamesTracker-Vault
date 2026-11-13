@@ -84,7 +84,7 @@ The reference example of the four layers.
 | `updateOwnUsername(id, username, repo)` | trims the name; 409 "That name is already in use." if it belongs to another account; returns the user without password |
 | `changeOwnPassword(id, current, next, repo)` | reads the hash (`findByIdWithPassword`), confirms the current one with `comparePasswords` (400 "The current password is wrong."), stores the new one with bcrypt 12; `{ message: 'Password alterada' }` |
 | `updateUserByAdmin(id, dto, repo)` | 404 if it doesn't exist; only changes what's sent and different: name (409 if duplicated), role (400 "There must be at least one administrator." when removing the role from the last ADMIN), password (bcrypt 12); with no changes returns the user as is |
-| `deleteUserByAdmin(id, requesterId, repo)` | 400 "You can't delete your own account."; 404 if it doesn't exist; 400 "There must be at least one administrator." if it's the last ADMIN; deletes (the shelf and the `AiSettings` cascade); `{ message: 'Utilizador apagado' }` |
+| `deleteUserByAdmin(id, requesterId, repo)` | 400 "You can't delete your own account."; 404 if it doesn't exist; 400 "There must be at least one administrator." if it's the last ADMIN; deletes (the shelf, the `AiSettings` and the assistant conversations cascade); `{ message: 'Utilizador apagado' }` |
 
 Both `create*` reject a duplicate username with 409 and hash with bcrypt, 12 rounds.
 DTOs: `CreateUserDto` (`username` ≥ 3, `password` ≥ 8) and `AdminCreateUserDto` (plus
@@ -367,46 +367,67 @@ later and paused) is done in the browser, without a route.
 
 The assistant: a chat with Claude (Anthropic API) that knows the user's shelf and can
 search IGDB. Any user with a session (`JwtAuthGuard` on the class); each one uses
-**their own** Anthropic key. It has a controller, service, helpers and a repository; in
-place of the injectable client there's a file of functions for Anthropic.
+**their own** Anthropic key. It has a controller, service, helpers and two repositories;
+in place of the injectable client there's a file of functions for Anthropic. The
+conversations are stored (`AiConversation`, `AiMessage`); the answers being written live
+in memory (`ChatRuns`).
 
 | File | Role |
 |---|---|
-| `ai.module.ts` | `imports: [GamesModule, LibraryModule]`; providers `AiService` and `AiSettingsRepository` |
-| `ai.controller.ts` | `GET settings`, `PUT settings`, `DELETE settings`, `POST models` (200), `POST chat` (NDJSON streaming with `@Res()`, below) |
-| `ai.service.ts` | delegates to the helpers; injects `AiSettingsRepository`, `PrismaLibraryRepository` and `GamesService`. `removeSettings` deletes and returns the status |
-| `dto/ai.dto.ts` | `SaveAiSettingsDto` (`apiKey?` 20–400, `model` ≤ 100 with `/^[a-z0-9][a-z0-9.\-_@]*$/i`), `ListModelsDto` (`apiKey?`), `ChatDto` (`messages` 1–60 of `{ role: 'user' \| 'assistant', content: 1–12,000 }`, `language?` `pt-PT`·`en`·`es`) |
+| `ai.module.ts` | `imports: [GamesModule, LibraryModule]`; providers `AiService`, `AiSettingsRepository`, `AiChatRepository` and `ChatRuns` |
+| `ai.controller.ts` | `GET settings`, `PUT settings`, `DELETE settings`, `POST models` (200), `POST chat` (201, JSON), `GET conversations`, `GET conversations/:id`, `DELETE conversations/:id`, `POST conversations/:id/stop` (200), `GET conversations/:id/stream` (NDJSON with `@Res()`, below). The `:id` goes through `ParseUUIDPipe` |
+| `ai.service.ts` | delegates to the helpers; injects `AiSettingsRepository`, `AiChatRepository`, `ChatRuns`, `PrismaLibraryRepository` and `GamesService`. `removeSettings` deletes and returns the status. `ask`, `follow`, `stop`, `conversations`, `conversation`, `removeConversation` (below); `onModuleInit` calls `interruptPending` |
+| `dto/ai.dto.ts` | `SaveAiSettingsDto` (`apiKey?` 20–400, `model` ≤ 100 with `/^[a-z0-9][a-z0-9.\-_@]*$/i`), `ListModelsDto` (`apiKey?`), `ChatDto` (`conversationId?` uuid, `content` ≤ 12,000 with at least one non-blank character, `language?` `pt-PT`·`en`·`es`) |
 | `anthropic/anthropic.client.ts` | `listModels(apiKey)` (`GET /v1/models?limit=100` → `{ id, name, createdAt }[]`) and `streamMessage(args)` (`POST /v1/messages` with `stream: true`; parses the SSE by hand, calls `onText` on each chunk and returns the complete blocks — text and `tool_use` with the assembled JSON — and the `stop_reason`). Raw `fetch`, headers `x-api-key` and `anthropic-version: 2023-06-01`. Base URL `https://api.anthropic.com/v1`, or `ANTHROPIC_API_URL` (for tests only) |
 | `helpers/aiSettings.ts` | `DEFAULT_MODEL` (`claude-sonnet-5-5`); `getAiSettings` (`{ provider, configured, keyHint, model, updatedAt }`); `savedApiKey` (decrypts; 400 "You haven't added your Claude key yet…" without a row); `saveAiSettings` (new key → tests it with `listModels` **before** saving, encrypts, stores the `keyHint`; without a key only changes the model, 400 "The API key is missing." if there's none); `listAiModels` (with the given key or the stored one) |
 | `helpers/buildSystemPrompt.ts` | the instructions in English: who it is, the date, answer in the interface language (European pt-PT, never Brazilian), recommend based on the shelf, warn that "estimated" hours are averages, use `search_games` instead of guessing, and the link convention `[Name](game:<id>)`. Finally the shelf: one line per game (IGDB id, name, year, status, hours — marked if estimated —, rating, genres, dates, notes cut at 300 characters), up to **400** games, most recent first |
 | `helpers/gameTools.ts` | `GAME_TOOLS` — `search_games` (`{ query }`, up to 8 results with id, year, type, genres, platforms, rating) and `get_game` (`{ id }`, summary up to 1500 characters, genres, themes, platforms, developers, ratings, average times, base game, expansions, DLCs and same series, up to 12 each); `runGameTool` runs them through the `GamesService` and returns JSON as text |
-| `helpers/streamChat.ts` | one whole response (below); type `ChatEvent` |
+| `helpers/streamChat.ts` | one whole response (below); type `ChatEvent` (`text`, `tool`, `error`) |
+| `helpers/chatRuns.ts` | `ChatRun` — one answer being written: `content`, `tools` and `error` so far, its `AbortController`, `messageId` (the pending `AiMessage`), `push(event)` (accumulates and forwards), `snapshot()`, `subscribe(listener)` (returns the unsubscribe). `ChatRuns` (injectable) — a `Map` by conversation id, at most one run each: `get(userId, id)` (only the owner's), `start`, `end` (removes it, sends the final `error` if any and `done`). Type `RunEvent` = `ChatEvent` + `snapshot` + `done` |
 | `repositories/ai-settings-repository.ts` | `AiSettingsRepository` (Prisma class, no interface): `find`, `save` (upsert by `userId`), `updateModel`, `remove` (`deleteMany`) |
+| `repositories/ai-chat-repository.ts` | `AiChatRepository` (Prisma class, no interface): `listConversations(userId, take)` (by `updatedAt desc`), `findConversation(userId, id)` (with the messages by `id`), `createConversation`, `addTurn` (transaction: the question, an empty `pending` answer and the conversation's `updatedAt`), `finishAnswer(id, { content, tools, error })` (`pending: false`; no tools → `DbNull`), `saveProgress` (the text so far, every 3 s while `pending`), `interruptPending` (every `pending` → `error: 'interrupted'`), `deleteConversation` (`deleteMany` by `{ id, userId }`, returns whether it existed). Type `ChatTool` |
 
-**One response (`streamChat`).**
+**A question (`ask`).**
 
-1. `savedApiKey` (no key → 400, before any streaming).
-2. Reads the shelf (`listEntries`), refreshes the facts (`refreshGameFacts`) and builds
-   the instructions (`buildSystemPrompt`, with the `username` and the request's
-   language).
-3. Up to **6** tool rounds: `streamMessage` with `GAME_TOOLS` (on the 7th without tools,
+1. `savedApiKey` (no key → 400, before anything is saved).
+2. With `conversationId`: finds it (404 otherwise) and, if a run is going in it, 409 "The
+   assistant is still answering in this conversation.". Without it: creates the
+   conversation with the title from the question (whitespace collapsed, ≤ 80 characters).
+3. The history: the previous messages with text, no `error` and not `pending`, plus the
+   new question, the last **40**, dropping any leading assistant message.
+4. `addTurn`, `ChatRuns.start`, and `write` runs in the background (not awaited).
+5. Returns `{ conversation, question, answer }`; the answer comes with `pending: true`.
+
+**One response (`streamChat`)**, called by `write` with the key, model, language and
+history.
+
+1. Reads the shelf (`listEntries`), refreshes the facts (`refreshGameFacts`) and builds
+   the instructions (`buildSystemPrompt`, with the `username` and the language).
+2. Up to **6** tool rounds: `streamMessage` with `GAME_TOOLS` (on the 7th without tools,
    to force an answer), `max_tokens` 4096. Each text chunk goes out right away as
    `{ type: 'text', text }`. If it stops with `tool_use`, it emits
    `{ type: 'tool', name, query }` per tool, runs them (an error becomes a `tool_result`
    with `is_error`, it doesn't fail the response), appends the request and the results
    to the messages and goes back to Anthropic.
-4. At the end, `{ type: 'done' }`.
 
-The whole history comes from the browser on every request (the server doesn't store
-conversations).
+Errors are thrown. `write` catches them: aborted (stop or delete) keeps the text already
+written, with `error: 'stopped'` only if there's none; any other error becomes the
+exception's message (or a generic one). Then `finishAnswer` saves the answer (if the
+conversation was deleted meanwhile, it's only logged) and `ChatRuns.end` tells the
+followers.
 
-**Streaming in the controller.** On the first event it sets `application/x-ndjson`,
-`Cache-Control: no-cache, no-transform` and `X-Accel-Buffering: no` and calls
-`flushHeaders`; each event is a JSON line. If the browser closes the connection, an
-`AbortController` cancels the request to Anthropic (and the resulting error is ignored).
-An error before the first event (no key, rejected key, nonexistent model) responds with
-the HTTP code and `{ statusCode, message }`; midway, with a
-`{ type: 'error', message }` line.
+**Following (`follow`) and the stream in the controller.** If a run is going, it sends
+its `snapshot` and subscribes; otherwise it sends the last saved assistant message as a
+`snapshot` (404 if the conversation isn't the user's) and `done`. On the first event the
+controller sets `application/x-ndjson`, `Cache-Control: no-cache, no-transform` and
+`X-Accel-Buffering: no` and calls `flushHeaders`; each event is a JSON line, a
+`{ type: 'ping' }` every 20 s, and it ends the response on `done`. Closing the connection
+only unsubscribes. An error before the first event (404) responds with the HTTP code and
+`{ statusCode, message }`. `stop` aborts the run if there's one (it always answers
+`{ message: 'Resposta parada' }`); `removeConversation` aborts it too and then deletes
+(404 if it didn't exist). The list (`conversations`, up to 100) and `conversation` add
+`running`, and a message being written shows the run's text so far with
+`pending: true`.
 
 **Anthropic errors** (`toHttpError`, in Portuguese):
 

@@ -62,6 +62,6 @@ The numbering has gaps (07, 08, 13) on purpose, so older links keep working.
 - **Game page and shelf** → 03 (`Game`, `LibraryEntry`), 05 (`library/`), 10 (Game and
   Home pages).
 - **Stats and random game** → 05 (`library/`), 06 (`/library/stats`, `/library/discover`).
-- **Assistant** → 03 (`AiSettings`), 05 (`ai/`), 06 (`/ai`), 14.
+- **Assistant** → 03 (`AiSettings`, `AiConversation`, `AiMessage`), 05 (`ai/`), 06 (`/ai`), 14.
 - **Android app** → 17 and [android.md](./android.md).
 - **A new server module** → 04, then 16.

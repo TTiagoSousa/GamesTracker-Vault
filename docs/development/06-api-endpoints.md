@@ -5,8 +5,8 @@ No global prefix: routes live at the root. Base in development:
 prefix before forwarding.
 
 **Authentication**: `access_token` cookie (httpOnly, `sameSite: strict`, 7 days). Every
-frontend request carries `withCredentials: true` (`POST /ai/chat`, which is read as a
-stream with `fetch`, carries `credentials: 'include'`). The *Guard* column says what
+frontend request carries `withCredentials: true` (`GET /ai/conversations/:id/stream`,
+which is read as a stream with `fetch`, carries `credentials: 'include'`). The *Guard* column says what
 protects each route.
 
 **API tokens**: `JwtAuthGuard` is `AuthGuard(['jwt', 'api-token'])` — the cookie or an
@@ -232,30 +232,53 @@ no stored key: `configured: false`, `keyHint` and `updatedAt` `null`, `model` =
 | PUT | `/ai/settings` | `{ apiKey?, model }` | `AiSettings` after saving. With `apiKey`, tests it against Anthropic **before** saving (a rejected key never replaces the stored one); without it only changes the model (400 "The API key is missing." if there's no key) |
 | DELETE | `/ai/settings` | — | `AiSettings` (already `configured: false`); doesn't fail if there's nothing |
 | POST | `/ai/models` | `{ apiKey? }` | **200** `{ id, name, createdAt }[]` — the models the key has access to (the given one or, without it, the stored one). POST so the key doesn't end up in the URL |
-| POST | `/ai/chat` | `{ messages, language? }` | **200** streamed, `application/x-ndjson` (below) |
+| POST | `/ai/chat` | `{ conversationId?, content, language? }` | **201** `{ conversation, question, answer }` — saves the question, starts the answer on the server and returns right away (below) |
+| GET | `/ai/conversations` | — | `{ id, title, updatedAt, running }[]`, by `updatedAt` desc, up to 100 |
+| GET | `/ai/conversations/:id` | — | `{ id, title, updatedAt, running, messages: Message[] }`; 404 if it isn't the user's |
+| GET | `/ai/conversations/:id/stream` | — | **200** streamed, `application/x-ndjson` (below); 404 if it isn't the user's |
+| POST | `/ai/conversations/:id/stop` | — | **200** `{ message }` — aborts the answer being written; doesn't fail if there's none |
+| DELETE | `/ai/conversations/:id` | — | `{ message }`; aborts a running answer first; 404 if it doesn't exist |
+
+`Message` = `{ id, role: 'user' | 'assistant', content, tools: { name, query }[], error,
+pending }` — `error` is the server's message or the code `stopped` / `interrupted`;
+`pending` is `true` while the answer is being written (its `content` is then the text so
+far). `:id` must be a uuid (400 otherwise, `ParseUUIDPipe`).
 
 Validation: `apiKey` 20–400 characters ("The API key looks incomplete."); `model` up to
-100, `/^[a-z0-9][a-z0-9.\-_@]*$/i` ("Invalid model name."); `messages` 1–60, each
-`{ role: 'user' | 'assistant', content }` with 1–12,000 characters; `language`
-`pt-PT`·`en`·`es` (default `pt-PT`) — the language of the answer.
+100, `/^[a-z0-9][a-z0-9.\-_@]*$/i` ("Invalid model name."); `content` up to 12,000
+characters with at least one that isn't blank ("Write a question."), stored trimmed;
+`conversationId` a uuid ("Invalid conversation."); `language` `pt-PT`·`en`·`es` (default
+`pt-PT`) — the language of the answer.
 
-**`POST /ai/chat`.** The whole history goes in every request (the server doesn't store
-conversations). The response is one JSON line per event, sent as it arrives:
+**`POST /ai/chat`.** Without `conversationId` a new conversation is created, titled with
+the question (up to 80 characters). The question and an empty `pending` answer are saved
+and the answer is written on the server, in the background — it doesn't depend on any
+connection staying open. The last 40 messages with text and no error go to the model as
+history. Errors here are normal HTTP responses (`{ statusCode, message }`): 400 without
+a key ("You haven't added your Claude key yet. Go to Settings → Assistant."), 404
+unknown conversation, 409 if the conversation is already being answered.
+
+**`GET /ai/conversations/:id/stream`.** Follows the answer; one JSON line per event, sent
+as it arrives:
 
 | Event | When |
 |---|---|
+| `{ "type": "snapshot", "content": "…", "tools": […], "error": … }` | always first: what is written so far or, if nothing is running, the last saved answer |
 | `{ "type": "text", "text": "…" }` | a chunk of the answer (Markdown) |
 | `{ "type": "tool", "name": "search_games" \| "get_game", "query": "…" }` | Claude is searching IGDB (`query` = searched text or the id) |
-| `{ "type": "error", "message": "…" }` | error midway through the answer |
-| `{ "type": "done" }` | end |
+| `{ "type": "error", "message": "…" }` | the answer failed or was stopped (`stopped` when there was no text yet) |
+| `{ "type": "ping" }` | every 20 s, so proxies keep the connection open |
+| `{ "type": "done" }` | end; the server closes the response |
+
+Closing the stream only stops following — the answer keeps going and is saved when it
+ends; `POST …/stop` is what aborts it. Errors from Anthropic during the answer (rejected
+key, nonexistent model or no credit; 429 rate-limiting; 503 unavailable; 502 other
+error, messages in [05](./05-backend-modules.md#ai)) arrive as an `error` line with that
+message and are saved on the answer. An answer cut by a server restart is saved with
+`error: 'interrupted'`.
 
 In answers, games with a known id come as Markdown links `[Name](game:<IGDB id>)`, which
-the frontend turns into links to `/Vault/Game/<id>`. Errors **before** the stream starts
-arrive as a normal HTTP response (`{ statusCode, message }`): 400 without a key ("You
-haven't added your Claude key yet. Go to Settings → Assistant."), rejected key,
-nonexistent model or no credit; 429 Anthropic rate-limiting; 503 unavailable; 502 other
-error. Messages in [05](./05-backend-modules.md#ai). If the client closes the
-connection, the request to Anthropic is cancelled.
+the frontend turns into links to `/Vault/Game/<id>`.
 
 ## Integrations · `/integrations` (ADMIN only)
 

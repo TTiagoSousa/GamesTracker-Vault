@@ -354,11 +354,17 @@ cancelled). Two columns: the conversation (`Assistant_Chat`) and, on the right, 
 (`Assistant_Side`, with its own scroll if it does not fit); below 980px only the conversation, and the
 suggestions move inside the empty conversation.
 It uses `useAiSettings` (to know whether there is a key) and `useAssistantChat(username)`. Texts in
-`assistant:*`.
+`assistant:*`. Answers are written on the server: leaving the page and coming back shows
+the answer still being written, or finished.
 
 - **Conversation header** (`Assistant_Head`) — the `Sparkle`, `assistant:title`, the model
-  in use (or `side.noKey`) and **New conversation** (clears the conversation; disabled without
-  messages). Error reading the settings: `errors.settings`.
+  in use (or `side.noKey`), the **History** button (`Assistant_History_Toggle`,
+  `Icon.History`, `history.title`, `aria-expanded`; only with a key, and only shown below
+  980px) and **New conversation** (starts an empty one — it's only saved with the first
+  question; disabled without messages). Error reading the settings: `errors.settings`.
+- **History panel** (`Assistant_History_Panel`, below 980px) — opened by the History
+  button, over the messages, with the same `Conversation_List`; opening a conversation
+  or starting a new one closes it.
 - **No key** — the `Ai_Card` with the title `setup.title` fills the conversation body
   (`Assistant_Setup`, with its own scroll).
 - **Messages** (`Assistant_Messages`, own scroll, `aria-live="polite"`) — when empty,
@@ -367,16 +373,31 @@ It uses `useAiSettings` (to know whether there is a key) and `useAssistantChat(u
   buttons that send on click). Each message: avatar (the user's initial,
   or the `Sparkle`) and the bubble; on replies, above, the searches made on IGDB
   (`tools.search_games` / `tools.get_game`), the text through `Markdown` (`game:<id>`
-  links open the game's page), `thinking` while no text has arrived and the error, if
-  any. The list only follows the reply downward if the user was already at the bottom.
+  links open the game's page), `thinking` while no text has arrived, a blinking cursor
+  at the end of the text while the answer is `pending` (no animation with
+  `prefers-reduced-motion`) and the error, if any — the codes `stopped`, `interrupted`
+  and `network` become `errors.<code>`, anything else is shown as it came. While a saved
+  conversation loads with nothing on screen yet, `history.opening`. The list only
+  follows the reply downward if the user was already at the bottom (opening a
+  conversation jumps to the bottom).
 - **Composer** (`Assistant_Composer`, always at the bottom) — `textarea` (up to 12,000
   characters); Enter sends, Shift+Enter adds a new line; **Send** (`Icon.Send`) or, during
-  the reply, **Stop** (`stop`).
-- **Right column** — **Try asking** (`side.suggestions`): the five
+  the reply, **Stop** (`stop`). If the question can't be sent, it goes back into the box.
+- **Right column** — the saved conversations (`Assistant_Side_History`, `history.title`,
+  only with a key) through `Conversation_List`; **Try asking** (`side.suggestions`): the five
   questions (`suggestions.next`, `similar`, `backlog`, `short`, `hidden`), always at hand,
   that send on click (disabled without a key or during a reply); and **What the
   assistant reads** (`side.privacy`) with the links to `/Vault/Settings#assistant` and
   `/Vault/Help#claude`.
+
+`Conversation_List` (`Pages/Private/Assistant/Conversation_List.tsx`) receives
+`conversations`, `activeId`, `onOpen` and `onRemove`. `null` → `history.loading`; empty →
+`history.empty`. Each row: the title and when it was last updated (`history.now` under a
+minute, then `Intl.RelativeTimeFormat` in minutes, hours and days, and the date after a
+week) — or, while the assistant is still answering it, a pulsing dot and
+`history.running`; the open one has `aria-current`. The trash button
+(`history.deleteLabel`) turns the row into an inline confirmation (`history.confirm`,
+**Delete** / **Cancel**).
 
 On mobile (below 760px) the header, the messages (28px avatars) and the
 composer (46px) get more compact, and the top and bottom padding drops to 16px and
@@ -750,7 +771,7 @@ The `<nav>` uses `nav:sidebar.menu` as its `aria-label`.
 | `useLibraryStats` | `GET /library/stats` | `stats` (`LibraryStats` or `null`), `failed` |
 | `useDiscover` | `GET /library/discover` | `discover()` (→ `GameSummary` or `null`), `loading`, `error` |
 | `useAiSettings` | `GET`/`PUT`/`DELETE /ai/settings`, `POST /ai/models` | `settings`, `failed`, `models`, `busy` (`'save'`·`'models'`·`'remove'`·`null`), `loadModels(apiKey?)`, `save(model, apiKey?)`, `remove` |
-| `useAssistantChat(username)` | `POST /ai/chat` (`fetch`, streaming) | `messages`, `streaming`, `send(text)`, `stop`, `reset` |
+| `useAssistantChat(username)` | `POST /ai/chat`, `GET /ai/conversations`, `GET`/`DELETE /ai/conversations/:id`, `POST /ai/conversations/:id/stop`, `GET /ai/conversations/:id/stream` (`fetch`, streaming) | `conversations` (`ConversationSummary[]` or `null`), `activeId`, `messages`, `streaming`, `opening`, `send(text)` (→ whether it was sent), `stop`, `reset`, `open(id)`, `remove(id)` (→ whether it was deleted) |
 | `useApiTokens` | `GET`/`POST /tokens`, `DELETE /tokens/:id` | `tokens`, `busy` (`'create'`·a token id·`null`), `create(input)` (→ the token, shown once, or `null`), `revoke(id)` |
 | `useBackups` | `GET`/`POST /backups`, `PUT /backups/settings`, `DELETE /backups/:name` | `overview`, `busy` (`'create'`·`'settings'`·a file name·`null`), `createBackup`, `saveSettings(settings)`, `remove(name)` |
 
@@ -827,12 +848,24 @@ if present, the key; `remove` deletes and forgets the list. The three writes sho
 (`assistant:settings.saved` / `removed`, or the API message). The Assistant page and
 Settings each have their own instance.
 
-`useAssistantChat(username)` stores the conversation in `sessionStorage` under
-`assistant-chat:<username>` (only when it is not in the middle of a reply): it survives
-reloading and changing page, but not closing the tab, nor does it carry over to another one. `send`
-appends the question and an empty reply, and sends the last **40** messages with text and
-no error (`HISTORY`) and the interface language. It reads the response line by line: `text`
-appends to the last message, `tool` adds the search to the list, `error` sets the error. An
-HTTP error response (before streaming) puts the backend's `message` into the message.
-`stop` aborts the `fetch` (no text yet → `assistant:errors.stopped`); no network →
-`errors.network`; leaving the page also aborts. `reset` aborts and empties the conversation.
+`useAssistantChat(username)` keeps the conversations on the server and only the id of
+the open one in the browser (`localStorage`, `assistant-active:<username>`). On mount it
+reads the list and, if the last open conversation is still in it, opens it. `open(id)`
+stops following any other answer, reads the conversation (`opening` meanwhile; on error
+it goes back to an empty one) and, if it's `running`, follows it. `send` shows the
+question and an empty `pending` reply right away (optimistic, negative ids) and posts
+`{ conversationId, content, language }`; the response replaces them with the saved
+messages, puts the conversation at the top of the list and starts following. If the
+post fails, the messages go back to how they were and the API message shows in a toast.
+
+Following reads the stream line by line: `snapshot` replaces the last reply's content,
+tools and error, `text` appends, `tool` adds the search, `error` sets the error, `done`
+ends; `ping` is ignored. Updates only apply while that conversation is the open one. If
+the connection drops before `done`, it tries again up to **3** times, 1.5 s apart (the
+`snapshot` catches up on what was missed); after that the reply gets the `network`
+error. At the end the reply stops being `pending` and the list is refreshed. `stop`
+posts `…/stop` (the stream then brings the final `error`/`done`); leaving the page and
+`reset` only stop following — the answer keeps going on the server. `reset` also clears
+the open id. `remove` deletes (toast on error) and, if it was the open one, resets. While
+another conversation is still being answered, the list is refreshed every 4 s so its
+mark stays current.
