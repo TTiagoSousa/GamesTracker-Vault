@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.WindowInsets;
 import android.webkit.CookieManager;
@@ -67,13 +68,16 @@ public class MainActivity extends Activity {
         setContentView(root);
 
         // Android 15 draws the app behind the system bars: the content stays
-        // between them (and above the keyboard)
-        root.setOnApplyWindowInsetsListener((view, insets) -> {
-            int types = WindowInsets.Type.systemBars() | WindowInsets.Type.ime() | WindowInsets.Type.displayCutout();
-            android.graphics.Insets bars = insets.getInsets(types);
-            view.setPadding(bars.left, bars.top, bars.right, bars.bottom);
-            return WindowInsets.CONSUMED;
-        });
+        // between them (and above the keyboard). These inset APIs exist from Android 11;
+        // older versions do not draw behind the bars, so nothing needs adjusting there.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            root.setOnApplyWindowInsetsListener((view, insets) -> {
+                int types = WindowInsets.Type.systemBars() | WindowInsets.Type.ime() | WindowInsets.Type.displayCutout();
+                android.graphics.Insets bars = insets.getInsets(types);
+                view.setPadding(bars.left, bars.top, bars.right, bars.bottom);
+                return WindowInsets.CONSUMED;
+            });
+        }
 
         WebSettings settings = webView.getSettings();
         settings.setJavaScriptEnabled(true);

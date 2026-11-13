@@ -1,5 +1,6 @@
 package me.homesousa.gametracker;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.PendingIntent;
@@ -221,6 +222,7 @@ final class Updater {
      * confirmation, it opens its screen; if it fails, it says why. On
      * success, the app is replaced (and closed) by Android itself.
      */
+    @SuppressLint("InlinedApi")
     private void listenForResult() {
         if (receiver != null) return;
         receiver = new BroadcastReceiver() {
@@ -243,11 +245,9 @@ final class Updater {
             }
         };
         IntentFilter filter = new IntentFilter(ACTION_STATUS);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            activity.registerReceiver(receiver, filter, Context.RECEIVER_NOT_EXPORTED);
-        } else {
-            activity.registerReceiver(receiver, filter);
-        }
+        // Not exported: only this app's own PendingIntent reaches it. Android versions before
+        // 13 ignore the flag (the broadcast is addressed to this package anyway).
+        activity.registerReceiver(receiver, filter, Context.RECEIVER_NOT_EXPORTED);
     }
 
     void release() {
