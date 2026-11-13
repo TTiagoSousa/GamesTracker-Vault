@@ -31,7 +31,7 @@ jobs:
       - run: npm ci --no-audit --no-fund
       - run: npm run build:shared
       - name: Generate the Prisma client
-        run: npx prisma generate
+        run: npx prisma generate --no-hints
         working-directory: apps/backend
       - run: npm run lint
       - run: npm test
