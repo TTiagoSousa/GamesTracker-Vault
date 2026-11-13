@@ -1,0 +1,168 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+model User {
+  id             String   @id @default(uuid())
+  username       String   @unique
+  hashedPassword String
+  role           Role     @default(USER)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  libraryEntries LibraryEntry[]
+  aiSettings     AiSettings?
+  apiTokens      ApiToken[]
+
+  @@index([username])
+}
+
+// External services configured by the admin in the app. One row per service — the
+// key belongs to the whole installation, not to each user.
+enum IntegrationProvider {
+  IGDB
+}
+
+model Integration {
+  provider  IntegrationProvider @id
+  clientId  String
+  // Encrypted with TOKEN_ENCRYPTION_KEY (AES-256-GCM); never leaves the backend
+  secret    String
+  updatedAt DateTime            @updatedAt
+}
+
+// --- Shelf ---------------------------------------------------------------------------
+
+// Where a game sits on a user's shelf. The four shelves on Home
+// group them: playing (PLAYING, PAUSED), finished (FINISHED_MAIN,
+// FINISHED_EXTRAS, COMPLETED_100), to play (PLAN_TO_PLAY) and dropped.
+enum LibraryStatus {
+  PLAYING
+  PAUSED
+  PLAN_TO_PLAY
+  FINISHED_MAIN
+  FINISHED_EXTRAS
+  COMPLETED_100
+  DROPPED
+}
+
+// Minimal copy of an IGDB game — only what the shelf needs to render
+// without calling the API. Shared by all users; the rest of the details always
+// come from IGDB.
+model Game {
+  igdbId           Int       @id
+  name             String
+  slug             String?
+  coverImageId     String?
+  releaseYear      Int?
+  platforms        String[]
+  genres           String[]  @default([])
+  // Average time to beat (hours), from IGDB players: main story,
+  // main + extras and 100%. Stats use it when the user
+  // didn't enter the hours.
+  ttbMain          Float?
+  ttbExtras        Float?
+  ttbCompletionist Float?
+  // When genres and times were fetched from IGDB (null = never)
+  factsCheckedAt   DateTime?
+  updatedAt        DateTime  @updatedAt
+
+  libraryEntries LibraryEntry[]
+}
+
+model LibraryEntry {
+  id          String        @id @default(uuid())
+  userId      String
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  gameId      Int
+  game        Game          @relation(fields: [gameId], references: [igdbId])
+  status      LibraryStatus
+  hoursPlayed Float?
+  startedAt   DateTime?     @db.Date
+  finishedAt  DateTime?     @db.Date
+  // Personal rating from 1 to 10
+  rating      Int?
+  notes       String?
+  // Where the user played it (free text, usually one of the game's platforms)
+  platform    String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@unique([userId, gameId])
+  @@index([userId, status])
+}
+
+// --- Assistant (AI) --------------------------------------------------------------------
+
+// Assistant provider. For now only Anthropic (Claude).
+enum AiProvider {
+  ANTHROPIC
+}
+
+// Each user's assistant key and model: everyone uses their own account.
+model AiSettings {
+  userId    String     @id
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider  AiProvider @default(ANTHROPIC)
+  // Encrypted with TOKEN_ENCRYPTION_KEY (AES-256-GCM); never leaves the backend
+  apiKey    String
+  // The last 4 characters, to show which key is stored
+  keyHint   String
+  model     String
+  updatedAt DateTime   @updatedAt
+}
+
+// --- API -------------------------------------------------------------------------------
+
+// Tokens for calling the API from other programs (Authorization: Bearer gtv_…). Each one
+// acts as the user who created it, with that user's role. The token itself is only shown
+// once, when created; only its SHA-256 is stored.
+model ApiToken {
+  id         String    @id @default(uuid())
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name       String
+  tokenHash  String    @unique
+  // The first characters ("gtv_Ab12Cd"), to tell tokens apart in the list
+  prefix     String
+  // Only GET requests
+  readOnly   Boolean   @default(false)
+  // null = never expires
+  expiresAt  DateTime?
+  lastUsedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([userId])
+}
+
+// --- Backups ---------------------------------------------------------------------------
+
+// The installation's backup settings: a single row (id 1), created with the defaults the
+// first time it is read.
+model BackupSettings {
+  id           Int       @id @default(1)
+  automatic    Boolean   @default(true)
+  // "HH:MM", in the server's time zone
+  time         String    @default("03:30")
+  // Days a backup is kept (0 = forever)
+  keepDays     Int       @default(14)
+  // null = the default folder (BACKUP_DIR)
+  directory    String?
+  // Day ("YYYY-MM-DD") of the last automatic backup, so a restart doesn't repeat it
+  lastAutoDate String?
+  lastRunAt    DateTime?
+  lastOk       Boolean?
+  lastError    String?
+  lastFile     String?
+  updatedAt    DateTime  @updatedAt
+}
