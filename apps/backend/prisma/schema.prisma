@@ -22,6 +22,7 @@ model User {
 
   libraryEntries LibraryEntry[]
   aiSettings     AiSettings?
+  aiChats        AiConversation[]
   apiTokens      ApiToken[]
 
   @@index([username])
@@ -120,6 +121,43 @@ model AiSettings {
   keyHint   String
   model     String
   updatedAt DateTime   @updatedAt
+}
+
+// A conversation with the assistant, kept so it can be picked up again later. The title
+// is the first question, shortened.
+model AiConversation {
+  id        String      @id @default(uuid())
+  userId    String
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  messages  AiMessage[]
+
+  @@index([userId, updatedAt])
+}
+
+enum AiMessageRole {
+  USER
+  ASSISTANT
+}
+
+// One message of a conversation, in order of id. An answer is created empty and
+// `pending` while it is being written; it is saved in full when it ends.
+model AiMessage {
+  id             Int            @id @default(autoincrement())
+  conversationId String
+  conversation   AiConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  role           AiMessageRole
+  content        String         @default("")
+  // IGDB searches made for this answer: [{ name, query }]
+  tools          Json?
+  // Why the answer failed or stopped ("stopped" and "interrupted" are codes)
+  error          String?
+  pending        Boolean        @default(false)
+  createdAt      DateTime       @default(now())
+
+  @@index([conversationId, id])
 }
 
 // --- API -------------------------------------------------------------------------------

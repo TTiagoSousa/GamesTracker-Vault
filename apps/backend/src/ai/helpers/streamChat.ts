@@ -6,9 +6,6 @@ import {
   ContentBlock,
   streamMessage,
 } from '../anthropic/anthropic.client';
-import { AiSettingsRepository } from '../repositories/ai-settings-repository';
-import { ChatDto } from '../dto/ai.dto';
-import { savedApiKey } from './aiSettings';
 import { buildSystemPrompt } from './buildSystemPrompt';
 import { GAME_TOOLS, runGameTool } from './gameTools';
 
@@ -20,38 +17,36 @@ const MAX_TOKENS = 4096;
 export type ChatEvent =
   | { type: 'text'; text: string }
   | { type: 'tool'; name: string; query: string }
-  | { type: 'error'; message: string }
-  | { type: 'done' };
+  | { type: 'error'; message: string };
 
 /**
- * One assistant response: reads the user's key and model, adds the
- * shelf to the instructions and talks to Claude via streaming, running the
- * IGDB tools it requests. Each chunk goes out through `emit`.
- *
- * Errors before starting (no key, rejected key) propagate as
- * exceptions; mid-response ones too — the caller decides how to show them.
+ * One assistant response: adds the user's shelf to the instructions and talks
+ * to Claude via streaming, running the IGDB tools it requests. Each chunk goes
+ * out through `emit`. Errors are thrown — the caller decides how to show them.
  */
 export async function streamChat(args: {
+  apiKey: string;
+  model: string;
   userId: string;
   username: string;
-  dto: ChatDto;
+  language: 'pt-PT' | 'en' | 'es';
+  history: { role: 'user' | 'assistant'; content: string }[];
   signal: AbortSignal;
   emit: (event: ChatEvent) => void;
-  aiSettings: AiSettingsRepository;
   library: LibraryRepository;
   games: GamesService;
 }) {
-  const { apiKey, model } = await savedApiKey(args.userId, args.aiSettings);
+  const { apiKey, model } = args;
 
   const entries = await args.library.listEntries(args.userId);
   await refreshGameFacts(entries, args.library, args.games);
   const system = buildSystemPrompt({
     username: args.username,
-    language: args.dto.language ?? 'pt-PT',
+    language: args.language,
     entries,
   });
 
-  const messages: ApiMessage[] = args.dto.messages.map((m) => ({
+  const messages: ApiMessage[] = args.history.map((m) => ({
     role: m.role,
     content: m.content,
   }));
@@ -105,6 +100,4 @@ export async function streamChat(args: {
     messages.push({ role: 'assistant', content: result.content });
     messages.push({ role: 'user', content: results });
   }
-
-  args.emit({ type: 'done' });
 }

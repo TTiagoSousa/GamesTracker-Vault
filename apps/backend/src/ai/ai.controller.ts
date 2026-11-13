@@ -5,6 +5,8 @@ import {
   Get,
   HttpCode,
   HttpException,
+  Param,
+  ParseUUIDPipe,
   Post,
   Put,
   Req,
@@ -16,11 +18,15 @@ import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { JwtPayload } from 'src/auth/jwt-payload.interface';
 import { AiService } from './ai.service';
 import { ChatDto, ListModelsDto, SaveAiSettingsDto } from './dto/ai.dto';
-import { ChatEvent } from './helpers/streamChat';
+import { RunEvent } from './helpers/chatRuns';
 
 type AuthRequest = Request & { user: JwtPayload };
 
-// Each user's assistant: their key, their model, their conversation.
+// A line every 20 s while an answer is quiet (long IGDB searches), so proxies
+// don't close the connection
+const KEEPALIVE_MS = 20_000;
+
+// Each user's assistant: their key, their model, their conversations.
 @Controller('ai')
 @UseGuards(JwtAuthGuard)
 export class AiController {
@@ -49,22 +55,63 @@ export class AiController {
   }
 
   /**
-   * The assistant's streamed response: one JSON line per event
-   * (application/x-ndjson) — text chunks, IGDB searches, error and end.
-   * If the browser closes the connection, the Anthropic request is cancelled.
+   * A question. Saves it, starts the answer on the server and returns right away
+   * with the conversation; the answer is followed with GET …/stream.
    */
   @Post('chat')
-  async chat(
+  @HttpCode(201)
+  chat(@Req() req: AuthRequest, @Body() dto: ChatDto) {
+    return this.ai.ask(req.user, dto);
+  }
+
+  @Get('conversations')
+  conversations(@Req() req: AuthRequest) {
+    return this.ai.conversations(req.user.id);
+  }
+
+  @Get('conversations/:id')
+  conversation(
+    @Req() req: AuthRequest,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.ai.conversation(req.user.id, id);
+  }
+
+  @Delete('conversations/:id')
+  removeConversation(
+    @Req() req: AuthRequest,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.ai.removeConversation(req.user.id, id);
+  }
+
+  @Post('conversations/:id/stop')
+  @HttpCode(200)
+  stop(@Req() req: AuthRequest, @Param('id', ParseUUIDPipe) id: string) {
+    return this.ai.stop(req.user.id, id);
+  }
+
+  /**
+   * The answer being written, one JSON line per event (application/x-ndjson):
+   * `snapshot` (what's written so far), `text`, `tool`, `error`, `done`.
+   * Closing the connection only stops following — the answer keeps going.
+   */
+  @Get('conversations/:id/stream')
+  async stream(
     @Req() req: AuthRequest,
     @Res() res: Response,
-    @Body() dto: ChatDto,
+    @Param('id', ParseUUIDPipe) id: string,
   ) {
-    const controller = new AbortController();
-    res.on('close', () => {
-      if (!res.writableEnded) controller.abort();
-    });
+    const timer: { keepalive?: NodeJS.Timeout } = {};
+    let off: (() => void) | null = null;
+    const close = () => {
+      clearInterval(timer.keepalive);
+      off?.();
+      if (!res.writableEnded) res.end();
+    };
 
-    const emit = (event: ChatEvent) => {
+    const emit = (event: RunEvent) => {
+      if (res.writableEnded) return;
       if (!res.headersSent) {
         res.status(200);
         res.setHeader('Content-Type', 'application/x-ndjson; charset=utf-8');
@@ -74,27 +121,29 @@ export class AiController {
         res.flushHeaders();
       }
       res.write(`${JSON.stringify(event)}\n`);
+      if (event.type === 'done') close();
     };
 
+    res.on('close', close);
     try {
-      await this.ai.chat(req.user, dto, controller.signal, emit);
+      off = await this.ai.follow(req.user.id, id, emit);
     } catch (error) {
-      if (controller.signal.aborted) return;
-      const message =
-        error instanceof HttpException
-          ? String(
-              (error.getResponse() as { message?: string }).message ??
-                error.message,
-            )
-          : 'O assistente falhou a responder. Tenta outra vez.';
-      // Before the response starts, a regular HTTP error; midway, an error line
-      if (!res.headersSent) {
-        const status = error instanceof HttpException ? error.getStatus() : 500;
-        res.status(status).json({ statusCode: status, message });
-        return;
+      clearInterval(timer.keepalive);
+      if (res.headersSent) return close();
+      if (error instanceof HttpException) {
+        res.status(error.getStatus()).json(error.getResponse());
+      } else {
+        res.status(500).json({ statusCode: 500, message: 'Erro interno' });
       }
-      emit({ type: 'error', message });
+      return;
     }
-    if (!res.writableEnded) res.end();
+    if (res.writableEnded) {
+      off?.();
+      return;
+    }
+    timer.keepalive = setInterval(
+      () => res.write(`${JSON.stringify({ type: 'ping' })}\n`),
+      KEEPALIVE_MS,
+    );
   }
 }

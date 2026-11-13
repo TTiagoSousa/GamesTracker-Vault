@@ -1,14 +1,11 @@
-import { Type } from 'class-transformer';
 import {
-  ArrayMaxSize,
-  ArrayMinSize,
   IsIn,
   IsOptional,
   IsString,
+  IsUUID,
   Matches,
   MaxLength,
   MinLength,
-  ValidateNested,
 } from 'class-validator';
 
 const MODEL_ID = /^[a-z0-9][a-z0-9.\-_@]*$/i;
@@ -36,22 +33,16 @@ export class ListModelsDto {
   apiKey?: string;
 }
 
-export class ChatMessageDto {
-  @IsIn(['user', 'assistant'])
-  role: 'user' | 'assistant';
+/** A question to the assistant: in an existing conversation, or starting a new one. */
+export class ChatDto {
+  @IsOptional()
+  @IsUUID('all', { message: 'Conversa inválida.' })
+  conversationId?: string;
 
   @IsString()
-  @MinLength(1)
+  @Matches(/\S/, { message: 'Escreve uma pergunta.' })
   @MaxLength(12_000)
   content: string;
-}
-
-export class ChatDto {
-  @ValidateNested({ each: true })
-  @Type(() => ChatMessageDto)
-  @ArrayMinSize(1)
-  @ArrayMaxSize(60)
-  messages: ChatMessageDto[];
 
   @IsOptional()
   @IsIn(['pt-PT', 'en', 'es'])
