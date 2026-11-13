@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The "selfupdate" build (the APK published on GitHub and served by each server)
+     updates itself from the server, so it needs to install packages. The "fdroid" build
+     leaves updates to the store and does not ask for this permission. -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+</manifest>

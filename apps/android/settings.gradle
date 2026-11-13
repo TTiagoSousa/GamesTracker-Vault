@@ -1,0 +1,20 @@
+// GamesTracker Vault Android app: a native WebView connected to the server the
+// user picks on first launch. No dependencies beyond Android.
+pluginManagement {
+    repositories {
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+rootProject.name = 'GamesTrackerVault'
+include ':app'

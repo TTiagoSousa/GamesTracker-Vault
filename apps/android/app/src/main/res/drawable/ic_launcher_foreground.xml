@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The app's mark (viewBox 24): a vault dial with a play button, scaled up to the
+     adaptive icon's safe zone (108dp, with the central 66dp always visible). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <group
+        android:scaleX="2.4"
+        android:scaleY="2.4"
+        android:translateX="25.2"
+        android:translateY="25.2">
+        <path
+            android:pathData="M12,4a8,8 0,1 1,0 16a8,8 0,1 1,0 -16z"
+            android:strokeColor="#FF8A1F"
+            android:strokeWidth="2.2" />
+        <path
+            android:pathData="M12,1.5v3M12,19.5v3M1.5,12h3M19.5,12h3"
+            android:strokeColor="#FF8A1F"
+            android:strokeWidth="2.2"
+            android:strokeLineCap="round" />
+        <path
+            android:pathData="M10,8.6v6.8a0.6,0.6 0,0 0,0.9 0.5l5.4,-3.4a0.6,0.6 0,0 0,0 -1L10.9,8.1a0.6,0.6 0,0 0,-0.9 0.5z"
+            android:fillColor="#FF8A1F" />
+    </group>
+</vector>

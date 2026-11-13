@@ -1,0 +1,82 @@
+plugins {
+    id 'com.android.application'
+}
+
+// Signing comes from a file outside the repository (see scripts/build-android.mjs and
+// the release workflow): the keystore never goes into git. Without it, the release APK
+// comes out unsigned.
+def keystoreProps = new Properties()
+def keystorePath = System.getenv('GAMETRACKER_KEYSTORE_PROPERTIES')
+if (keystorePath && file(keystorePath).exists()) {
+    file(keystorePath).withInputStream { keystoreProps.load(it) }
+}
+
+// The app shares the server's version (gradle.properties, kept in sync with package.json
+// by the release script). The version code follows from it, so every release is newer
+// than the one before: 1.4.2 → 1004002.
+def appVersion = project.property('APP_VERSION_NAME').toString()
+def versionParts = appVersion.tokenize('.').collect { it as int }
+def appVersionCode = versionParts[0] * 1000000 + versionParts[1] * 1000 + versionParts[2]
+
+android {
+    namespace 'me.homesousa.gametracker'
+    compileSdk 35
+
+    defaultConfig {
+        // Kept from the first release: changing it would make phones treat the app as a
+        // different one (no update, data lost).
+        applicationId 'me.homesousa.gametracker'
+        minSdk 26
+        targetSdk 35
+        versionCode appVersionCode
+        versionName appVersion
+    }
+
+    // selfupdate: the APK published on GitHub and served by each server; it checks the
+    //             server for a newer APK and installs it.
+    // fdroid:     no self-update and no install permission; the store updates it.
+    flavorDimensions 'distribution'
+    productFlavors {
+        selfupdate {
+            dimension 'distribution'
+            buildConfigField 'boolean', 'SELF_UPDATE', 'true'
+        }
+        fdroid {
+            dimension 'distribution'
+            buildConfigField 'boolean', 'SELF_UPDATE', 'false'
+        }
+    }
+
+    signingConfigs {
+        release {
+            if (keystoreProps['storeFile']) {
+                storeFile file(keystoreProps['storeFile'])
+                storePassword keystoreProps['storePassword']
+                keyAlias keystoreProps['keyAlias']
+                keyPassword keystoreProps['keyPassword']
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            // One Activity and nothing else: shrinking gains almost nothing
+            minifyEnabled false
+            if (keystoreProps['storeFile']) signingConfig signingConfigs.release
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    buildFeatures {
+        buildConfig true
+    }
+
+    lint {
+        // The app has no translations for every Android locale; that is fine.
+        disable 'MissingTranslation'
+    }
+}
