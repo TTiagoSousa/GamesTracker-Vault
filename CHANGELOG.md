@@ -11,6 +11,8 @@ Spanish, are in [`releases/`](./releases) and in the app under Admin → Version
 
 - **Assistant history**: conversations are kept on the server and listed beside the chat,
   to reopen or delete.
+- **Assistant changes your shelf**: ask it to add a game, mark it finished, rate it, log hours
+  or remove it, and it proposes the change in a card you confirm or dismiss.
 - **Answers keep going** when you leave the page: coming back shows the answer still being
   written, or finished.
 

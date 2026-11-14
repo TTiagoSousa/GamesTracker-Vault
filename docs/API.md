@@ -192,6 +192,7 @@ Each user's own Claude key and model.
 | GET | `/ai/conversations` | — | `[{ id, title, updatedAt, running }]`, the latest first (up to 100) |
 | GET | `/ai/conversations/:id` | — | the conversation with its `messages: [{ id, role, content, tools, error, pending }]` |
 | GET | `/ai/conversations/:id/stream` | — | the answer being written, one JSON object per line: `snapshot`, `text`, `tool`, `error`, `ping`, `done` |
+| POST | `/ai/conversations/:id/actions/:actionId` | `{ decision }` (`confirm` or `dismiss`) | `{ action }` — confirms (applies to the shelf) or dismisses a change the assistant proposed; 409 if already decided |
 | POST | `/ai/conversations/:id/stop` | — | stops the answer being written |
 | DELETE | `/ai/conversations/:id` | — | deletes the conversation |
 | POST | `/ai/conversations/delete` | `{ ids: [uuid] }` (1–100) | `{ deleted }` — deletes several at once |
@@ -199,7 +200,9 @@ Each user's own Claude key and model.
 Conversations are kept on the server, and the last 40 messages go with each question.
 The answer keeps being written if the connection drops: `/stream` first sends a
 `snapshot` with what is already written (or, if it has ended, the saved answer) and then
-each new piece, until `done`. A `ping` line comes every 20 seconds while nothing else
+each new piece, until `done`. An `action` line is a shelf change the assistant proposes
+(`{ id, kind: 'set' | 'remove', gameId, gameName, coverUrl, change, before, state }`): nothing
+changes until it is confirmed with `…/actions/:actionId`. A `ping` line comes every 20 seconds while nothing else
 does. `error` is a message, or the code `stopped` or `interrupted` (the server restarted
 mid-answer). `language` is `pt-PT`, `en` or `es`.
 
