@@ -1,6 +1,6 @@
 {
   "name": "@gametracker/backend",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "GamesTracker Vault server (NestJS + Prisma).",
   "private": true,
   "license": "AGPL-3.0-only",
