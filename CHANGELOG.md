@@ -7,6 +7,8 @@ Spanish, are in [`releases/`](./releases) and in the app under Admin → Version
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-11-14
+
 ### Added
 
 - **Assistant history**: conversations are kept on the server and listed beside the chat,
@@ -68,6 +70,7 @@ First public release.
   up to 1.6.0, whose history was folded into this release; existing Proxmox installs move
   over with `deploy/proxmox/switch-repo.sh` ([docs/updating.md](./docs/updating.md#moving-from-the-old-repository)).
 
-[Unreleased]: https://github.com/TTiagoSousa/GamesTracker-Vault/compare/v1.0.1...HEAD
+[Unreleased]: https://github.com/TTiagoSousa/GamesTracker-Vault/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/TTiagoSousa/GamesTracker-Vault/compare/v1.0.1...v1.1.0
 [1.0.1]: https://github.com/TTiagoSousa/GamesTracker-Vault/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/TTiagoSousa/GamesTracker-Vault/releases/tag/v1.0.0
