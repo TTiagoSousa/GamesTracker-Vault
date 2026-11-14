@@ -7,6 +7,15 @@ Spanish, are in [`releases/`](./releases) and in the app under Admin → Version
 
 ## [Unreleased]
 
+### Added
+
+- **Prices**: a new Prices page and a prices block on every game: the best price now and
+  where, the other shops, the lowest ever and how it moved. From IsThereAnyDeal with a free
+  key (Admin → Prices, dozens of shops in your currency), or CheapShark without one.
+- **Follow a game's price**: on any sale or below a target price, with alerts on the site
+  (a count on the Prices tab) and, in the Android app, as phone notifications.
+- **Your to-play list at today's prices**, and the deals the price service features.
+
 ## [1.1.0] - 2026-11-14
 
 ### Added

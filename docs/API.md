@@ -206,6 +206,52 @@ changes until it is confirmed with `…/actions/:actionId`. A `ping` line comes 
 does. `error` is a message, or the code `stopped` or `interrupted` (the server restarted
 mid-answer). `language` is `pt-PT`, `en` or `es`.
 
+## Prices
+
+Prices come from [IsThereAnyDeal](https://isthereanydeal.com/) when the admin saved a key
+(dozens of shops, in the country's currency), otherwise from
+[CheapShark](https://www.cheapshark.com/) (PC shops, US dollars). A `price` object is
+`{ provider, currency, price, regular, cut, shop, url, lowest, isLowest, deals, checkedAt }`:
+the best price now and where, the lowest ever, and every shop in `deals`
+(`[{ shop, price, regular, cut, url, expiry }]`, cheapest first). `price` is `null` when no
+covered shop sells the game. Shop links are the services' own (affiliate) links.
+
+| Method | Route | Body | Response |
+|---|---|---|---|
+| GET | `/prices/status` | — | `{ enabled, provider, country, currency, everyHours, lastCheckAt, lastError, nextCheckAt, checking }` |
+| GET | `/prices/games/:gameId` | — | `{ price, history: [{ day, price }], watch }` — fetched again when older than 3 hours |
+| GET | `/prices/watchlist` | — | `{ items: [{ game, targetPrice, reached, price, createdAt }] }` — the games you follow |
+| PUT | `/prices/watchlist/:gameId` | `{ targetPrice }` (a number, or `null` for any sale) | `{ item }` — follows the game or changes its target |
+| DELETE | `/prices/watchlist/:gameId` | — | `{ message }` |
+| GET | `/prices/backlog` | — | `{ items: [{ game, watched, price, searched }] }` — your "to play" shelf at today's prices |
+| GET | `/prices/featured` | — | `{ deals: [{ title, image, shop, price, regular, cut, currency, url, expiry, lowest }] }` |
+| PUT | `/prices/settings` (admin) | `{ enabled?, country?, everyHours? }` | the status; `everyHours` is 1, 3, 6, 12 or 24 |
+| POST | `/prices/check` (admin) | — | the status, after checking every followed and "to play" game now |
+
+Every `everyHours` the server checks the followed games and everyone's "to play" shelf.
+A followed game with no target alerts when it goes on sale; with a target, when the best
+price is at or below it. The same deal is announced once; a lower price is announced
+again, and once the deal ends the next one is too. Following a game that is already on
+sale doesn't alert.
+
+## Notifications
+
+The price alerts, for the site and the Android app.
+
+| Method | Route | Body | Response |
+|---|---|---|---|
+| GET | `/notifications?after=&limit=` | — | `{ items, unread, latestId }`, the newest first; `after` returns only newer ones |
+| GET | `/notifications/unread` | — | `{ unread }` |
+| POST | `/notifications/read` | `{ ids? }` (absent = all) | `{ unread }` |
+| DELETE | `/notifications` | — | `{ unread: 0 }` — deletes them all |
+| POST | `/notifications/devices` (browser only) | — | `{ token, tokenId, latestId }` — a read-only token for a phone |
+
+A `PRICE_DROP` item is `{ id, kind, gameId, read, createdAt, gameName, coverUrl, price,
+regular, cut, currency, shop, url, lowest, isLowest, targetPrice }`. The Android app turns
+alerts on with `/notifications/devices`: it keeps that read-only token (listed in
+Settings → API as "Android — avisos de preço", where it can be revoked) and asks for
+`/notifications?after=` about every half hour.
+
 ## Backups (admin)
 
 Database backups (`pg_dump`, gzip), made by the server itself. The automatic one runs
@@ -296,6 +342,15 @@ Updates only go forward; there is no route to go back to an older version.
 | PUT | `/integrations/igdb` | `{ clientId, clientSecret? }` | the status; checked with Twitch before saving |
 | POST | `/integrations/igdb/test` | — | `{ ok: true }` or `{ ok: false, reason }` |
 | DELETE | `/integrations/igdb` | — | the status, unconfigured |
+
+## IsThereAnyDeal key (admin)
+
+| Method | Route | Body | Response |
+|---|---|---|---|
+| GET | `/integrations/itad` | — | `{ configured, unreadable, keyHint, updatedAt }` |
+| PUT | `/integrations/itad` | `{ key }` | the status; checked with IsThereAnyDeal before saving |
+| POST | `/integrations/itad/test` | — | `{ ok: true }` or `{ ok: false, reason }` |
+| DELETE | `/integrations/itad` | — | the status; prices go back to CheapShark |
 
 ## API tokens (browser only)
 
