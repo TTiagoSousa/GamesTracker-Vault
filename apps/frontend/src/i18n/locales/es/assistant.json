@@ -34,6 +34,27 @@
     "confirmMany_one": "¿Borrar {{count}} conversación? No se puede deshacer.",
     "confirmMany_other": "¿Borrar {{count}} conversaciones? No se puede deshacer."
   },
+  "actions": {
+    "add": "Añadir a la estantería",
+    "change": "Cambiar en la estantería",
+    "remove": "Quitar de la estantería",
+    "fields": {
+      "status": "Estado",
+      "rating": "Nota",
+      "hoursPlayed": "Horas",
+      "platform": "Plataforma"
+    },
+    "empty": "—",
+    "ratingValue": "{{value}}/10",
+    "hoursValue": "{{value}} h",
+    "confirm": "Confirmar",
+    "confirming": "Guardando…",
+    "dismiss": "Ignorar",
+    "done": "Hecho: tu estantería está actualizada.",
+    "removed": "Hecho: ya no está en tu estantería.",
+    "dismissed": "Has ignorado este cambio.",
+    "failed": "No se pudo cambiar la estantería."
+  },
   "errors": {
     "generic": "El asistente no pudo responder. Inténtalo de nuevo.",
     "network": "Se perdió la conexión con el servidor a mitad de la respuesta. Inténtalo de nuevo.",

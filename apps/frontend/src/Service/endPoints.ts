@@ -26,6 +26,7 @@ export const End_Points = {
     Ai_Conversations_Delete_Endpoint: () => '/ai/conversations/delete',
     Ai_Conversation_Endpoint:      (id: string) => `/ai/conversations/${id}`,
     Ai_Conversation_Stream_Endpoint: (id: string) => `/ai/conversations/${id}/stream`,
+    Ai_Action_Endpoint:            (id: string, actionId: string) => `/ai/conversations/${id}/actions/${actionId}`,
     Ai_Conversation_Stop_Endpoint: (id: string) => `/ai/conversations/${id}/stop`,
     Api_Tokens_Endpoint:           () => '/tokens',
     Api_Token_Endpoint:            (id: string) => `/tokens/${id}`,

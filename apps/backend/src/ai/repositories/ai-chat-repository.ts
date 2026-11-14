@@ -6,11 +6,16 @@ import {
   Prisma,
 } from 'src/generated/prisma/client/client';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { ShelfAction } from '../helpers/shelfActions';
 
 export interface ChatTool {
   name: string;
   query: string;
 }
+
+// A list as a Json column: empty lists are stored as NULL
+const json = (list: unknown[]) =>
+  list.length ? (list as unknown as Prisma.InputJsonValue) : Prisma.DbNull;
 
 /** Each user's conversations with the assistant and their messages. */
 @Injectable()
@@ -65,15 +70,19 @@ export class AiChatRepository {
 
   finishAnswer(
     id: number,
-    data: { content: string; tools: ChatTool[]; error: string | null },
+    data: {
+      content: string;
+      tools: ChatTool[];
+      actions: ShelfAction[];
+      error: string | null;
+    },
   ): Promise<AiMessage> {
     return this.prisma.aiMessage.update({
       where: { id },
       data: {
         content: data.content,
-        tools: data.tools.length
-          ? (data.tools as unknown as Prisma.InputJsonValue)
-          : Prisma.DbNull,
+        tools: json(data.tools),
+        actions: json(data.actions),
         error: data.error,
         pending: false,
       },
@@ -81,10 +90,22 @@ export class AiChatRepository {
   }
 
   /** What's written so far, so a restart doesn't lose it (the answer stays pending). */
-  async saveProgress(id: number, content: string): Promise<void> {
+  async saveProgress(
+    id: number,
+    content: string,
+    actions: ShelfAction[],
+  ): Promise<void> {
     await this.prisma.aiMessage.updateMany({
       where: { id, pending: true },
-      data: { content },
+      data: { content, actions: json(actions) },
+    });
+  }
+
+  /** The proposed shelf changes of a message, after the user decided one. */
+  async saveActions(id: number, actions: ShelfAction[]): Promise<void> {
+    await this.prisma.aiMessage.update({
+      where: { id },
+      data: { actions: json(actions) },
     });
   }
 

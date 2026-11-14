@@ -8,6 +8,12 @@ import {
 } from '../anthropic/anthropic.client';
 import { buildSystemPrompt } from './buildSystemPrompt';
 import { GAME_TOOLS, runGameTool } from './gameTools';
+import {
+  proposeShelfChange,
+  SHELF_TOOL,
+  SHELF_TOOL_NAME,
+  ShelfAction,
+} from './shelfActions';
 
 // How many times in a row the model may request tools in a single response
 const MAX_TOOL_ROUNDS = 6;
@@ -17,7 +23,9 @@ const MAX_TOKENS = 4096;
 export type ChatEvent =
   | { type: 'text'; text: string }
   | { type: 'tool'; name: string; query: string }
-  | { type: 'error'; message: string };
+  | { type: 'error'; message: string }
+  // A shelf change for the user to confirm
+  | { type: 'action'; action: ShelfAction };
 
 /**
  * One assistant response: adds the user's shelf to the instructions and talks
@@ -51,17 +59,25 @@ export async function streamChat(args: {
     content: m.content,
   }));
 
+  // Text from different rounds (before and after a tool) is kept apart as paragraphs
+  let wroteText = false;
   for (let round = 0; round <= MAX_TOOL_ROUNDS; round++) {
+    let roundText = false;
     const result = await streamMessage({
       apiKey,
       model,
       system,
       messages,
       // On the last round there are no tools: the model has to answer
-      tools: round < MAX_TOOL_ROUNDS ? GAME_TOOLS : undefined,
+      tools: round < MAX_TOOL_ROUNDS ? [...GAME_TOOLS, SHELF_TOOL] : undefined,
       maxTokens: MAX_TOKENS,
       signal: args.signal,
-      onText: (text) => args.emit({ type: 'text', text }),
+      onText: (text) => {
+        const gap = wroteText && !roundText ? '\n\n' : '';
+        roundText = true;
+        wroteText = true;
+        args.emit({ type: 'text', text: gap + text });
+      },
     });
 
     const toolUses = result.content.filter(
@@ -72,6 +88,31 @@ export async function streamChat(args: {
 
     const results: ContentBlock[] = [];
     for (const use of toolUses) {
+      // A shelf change isn't made here: it becomes a card the user confirms
+      if (use.name === SHELF_TOOL_NAME) {
+        try {
+          const { action, result } = await proposeShelfChange(
+            args.userId,
+            use.input,
+            args.library,
+            args.games,
+          );
+          if (action) args.emit({ type: 'action', action });
+          results.push({
+            type: 'tool_result',
+            tool_use_id: use.id,
+            content: result,
+          });
+        } catch (error) {
+          results.push({
+            type: 'tool_result',
+            tool_use_id: use.id,
+            content: `Error: ${error instanceof Error ? error.message : 'tool failed'}`,
+            is_error: true,
+          });
+        }
+        continue;
+      }
       args.emit({
         type: 'tool',
         name: use.name,

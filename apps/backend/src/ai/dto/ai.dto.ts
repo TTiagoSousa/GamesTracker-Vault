@@ -52,6 +52,12 @@ export class ChatDto {
   language?: 'pt-PT' | 'en' | 'es';
 }
 
+/** The user's answer to a shelf change the assistant proposed. */
+export class ShelfActionDecisionDto {
+  @IsIn(['confirm', 'dismiss'], { message: 'Decisão inválida.' })
+  decision: 'confirm' | 'dismiss';
+}
+
 /** The conversations to delete together. */
 export class DeleteConversationsDto {
   @IsArray()

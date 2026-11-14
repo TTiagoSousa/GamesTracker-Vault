@@ -20,6 +20,7 @@ import { AiService } from './ai.service';
 import {
   ChatDto,
   DeleteConversationsDto,
+  ShelfActionDecisionDto,
   ListModelsDto,
   SaveAiSettingsDto,
 } from './dto/ai.dto';
@@ -98,6 +99,18 @@ export class AiController {
     @Param('id', ParseUUIDPipe) id: string,
   ) {
     return this.ai.removeConversation(req.user.id, id);
+  }
+
+  /** Confirms (applies) or dismisses a shelf change the assistant proposed. */
+  @Post('conversations/:id/actions/:actionId')
+  @HttpCode(200)
+  decide(
+    @Req() req: AuthRequest,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('actionId', ParseUUIDPipe) actionId: string,
+    @Body() dto: ShelfActionDecisionDto,
+  ) {
+    return this.ai.decide(req.user.id, id, actionId, dto.decision);
   }
 
   @Post('conversations/:id/stop')

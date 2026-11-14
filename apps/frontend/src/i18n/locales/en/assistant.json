@@ -34,6 +34,27 @@
     "confirmMany_one": "Delete {{count}} chat? This can’t be undone.",
     "confirmMany_other": "Delete {{count}} chats? This can’t be undone."
   },
+  "actions": {
+    "add": "Add to shelf",
+    "change": "Change on shelf",
+    "remove": "Remove from shelf",
+    "fields": {
+      "status": "Status",
+      "rating": "Rating",
+      "hoursPlayed": "Hours",
+      "platform": "Platform"
+    },
+    "empty": "—",
+    "ratingValue": "{{value}}/10",
+    "hoursValue": "{{value}} h",
+    "confirm": "Confirm",
+    "confirming": "Saving…",
+    "dismiss": "Dismiss",
+    "done": "Done: your shelf is updated.",
+    "removed": "Done: it’s off your shelf.",
+    "dismissed": "You dismissed this change.",
+    "failed": "Couldn’t change your shelf."
+  },
   "errors": {
     "generic": "The assistant couldn’t answer. Try again.",
     "network": "The connection to the server dropped mid-answer. Try again.",

@@ -20,6 +20,11 @@ import {
 } from './helpers/aiSettings';
 import { streamChat } from './helpers/streamChat';
 import { ChatRun, ChatRuns } from './helpers/chatRuns';
+import {
+  applyError,
+  applyShelfAction,
+  ShelfAction,
+} from './helpers/shelfActions';
 
 // How many previous messages go with each question
 const HISTORY = 40;
@@ -35,6 +40,28 @@ const titleFrom = (question: string) => {
     ? `${line.slice(0, TITLE_LENGTH - 1).trimEnd()}…`
     : line;
 };
+
+// What the model reads about the shelf changes it proposed in an earlier answer
+const STATE_NOTE: Record<ShelfAction['state'], string> = {
+  pending: 'not decided yet',
+  done: 'confirmed and applied',
+  dismissed: 'dismissed by the user',
+  failed: 'failed',
+};
+
+const describeActions = (actions: ShelfAction[]) =>
+  actions.length
+    ? `
+
+[Shelf changes proposed in this answer: ${actions
+        .map(
+          (a) =>
+            `${a.gameName} (id ${a.gameId}) ${a.kind === 'remove' ? 'remove' : JSON.stringify(a.change)} — ${STATE_NOTE[a.state]}`,
+        )
+        .join('; ')}]`
+    : '';
+
+const actionsOf = (m: AiMessage) => (m.actions as ShelfAction[] | null) ?? [];
 
 const errorMessage = (error: unknown) =>
   error instanceof HttpException
@@ -122,6 +149,53 @@ export class AiService implements OnModuleInit {
     return { deleted };
   }
 
+  /**
+   * The user's answer to a proposed shelf change: "confirm" applies it, "dismiss"
+   * only records it. Works while the answer is still being written, too.
+   */
+  async decide(
+    userId: string,
+    conversationId: string,
+    actionId: string,
+    decision: 'confirm' | 'dismiss',
+  ) {
+    let messageId: number;
+    let actions: ShelfAction[];
+    const run = this.runs.get(userId, conversationId);
+    if (run?.actions.some((a) => a.id === actionId)) {
+      messageId = run.messageId;
+      actions = run.actions;
+    } else {
+      const found = await this.chats.findConversation(userId, conversationId);
+      if (!found) throw new NotFoundException('Conversa não encontrada');
+      const message = found.messages.find((m) =>
+        actionsOf(m).some((a) => a.id === actionId),
+      );
+      if (!message) throw new NotFoundException('Proposta não encontrada');
+      messageId = message.id;
+      actions = actionsOf(message);
+    }
+
+    const action = actions.find((a) => a.id === actionId)!;
+    if (action.state !== 'pending') {
+      throw new ConflictException('Esta proposta já foi decidida.');
+    }
+    // Marked at once so a second click doesn't apply it twice
+    action.state = decision === 'confirm' ? 'done' : 'dismissed';
+    if (decision === 'confirm') {
+      try {
+        await applyShelfAction(userId, action, this.library, this.games);
+      } catch (error) {
+        action.state = 'failed';
+        action.error = applyError(error);
+      }
+    }
+    await this.chats.saveActions(messageId, actions).catch((error) => {
+      this.logger.debug(`Decision not saved: ${String(error)}`);
+    });
+    return { action };
+  }
+
   stop(userId: string, id: string) {
     this.runs.get(userId, id)?.controller.abort();
     return { message: 'Resposta parada' };
@@ -168,7 +242,7 @@ export class AiService implements OnModuleInit {
             m.role === AiMessageRole.USER
               ? ('user' as const)
               : ('assistant' as const),
-          content: m.content,
+          content: m.content + describeActions(actionsOf(m)),
         })),
       { role: 'user' as const, content: question },
     ].slice(-HISTORY);
@@ -222,6 +296,7 @@ export class AiService implements OnModuleInit {
         type: 'snapshot',
         content: message.content,
         tools: message.tools,
+        actions: message.actions,
         error: message.error,
       });
     }
@@ -237,10 +312,14 @@ export class AiService implements OnModuleInit {
     >,
   ) {
     let saved = '';
+    let savedActions = 0;
     const progress = setInterval(() => {
-      if (run.content === saved) return;
+      if (run.content === saved && run.actions.length === savedActions) return;
       saved = run.content;
-      this.chats.saveProgress(run.messageId, saved).catch(() => undefined);
+      savedActions = run.actions.length;
+      this.chats
+        .saveProgress(run.messageId, saved, run.actions)
+        .catch(() => undefined);
     }, SAVE_EVERY_MS);
     try {
       await streamChat({
@@ -263,6 +342,7 @@ export class AiService implements OnModuleInit {
       await this.chats.finishAnswer(run.messageId, {
         content: run.content,
         tools: run.tools,
+        actions: run.actions,
         error: run.error,
       });
     } catch (error) {
@@ -279,6 +359,7 @@ export class AiService implements OnModuleInit {
       role: m.role === AiMessageRole.USER ? 'user' : 'assistant',
       content: live ? live.content : m.content,
       tools: live ? live.tools : ((m.tools as ChatTool[] | null) ?? []),
+      actions: live ? live.actions : actionsOf(m),
       error: live ? live.error : m.error,
       pending: Boolean(live),
     };

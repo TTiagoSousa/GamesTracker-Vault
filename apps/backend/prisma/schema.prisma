@@ -152,6 +152,8 @@ model AiMessage {
   content        String         @default("")
   // IGDB searches made for this answer: [{ name, query }]
   tools          Json?
+  // Shelf changes proposed in this answer, waiting for the user or already decided
+  actions        Json?
   // Why the answer failed or stopped ("stopped" and "interrupted" are codes)
   error          String?
   pending        Boolean        @default(false)

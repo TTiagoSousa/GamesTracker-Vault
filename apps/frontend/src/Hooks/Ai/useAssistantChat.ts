@@ -11,12 +11,43 @@ export interface ChatTool {
   query: string;
 }
 
+export type LibraryStatus =
+  | 'PLAYING'
+  | 'PAUSED'
+  | 'PLAN_TO_PLAY'
+  | 'FINISHED_MAIN'
+  | 'FINISHED_EXTRAS'
+  | 'COMPLETED_100'
+  | 'DROPPED';
+
+export interface ShelfFields {
+  status: LibraryStatus | null;
+  rating: number | null;
+  hoursPlayed: number | null;
+  platform: string | null;
+}
+
+/** A shelf change the assistant proposed; nothing happens until the user confirms it. */
+export interface ShelfAction {
+  id: string;
+  kind: 'set' | 'remove';
+  gameId: number;
+  gameName: string;
+  coverUrl: string | null;
+  change: Partial<ShelfFields>;
+  before: ShelfFields | null;
+  state: 'pending' | 'done' | 'dismissed' | 'failed';
+  error?: string;
+}
+
 export interface ChatMessage {
   id: number;
   role: 'user' | 'assistant';
   content: string;
   // IGDB searches the assistant made for this answer
   tools: ChatTool[];
+  // Shelf changes proposed in this answer
+  actions: ShelfAction[];
   // The server's message, or a code: "stopped", "interrupted", "network"
   error: string | null;
   // Still being written
@@ -35,7 +66,8 @@ interface Conversation extends ConversationSummary {
 }
 
 type StreamEvent =
-  | { type: 'snapshot'; content: string; tools: ChatTool[]; error: string | null }
+  | { type: 'snapshot'; content: string; tools: ChatTool[]; actions: ShelfAction[]; error: string | null }
+  | { type: 'action'; action: ShelfAction }
   | { type: 'text'; text: string }
   | { type: 'tool'; name: string; query: string }
   | { type: 'error'; message: string }
@@ -148,7 +180,9 @@ export const useAssistantChat = (username: string | null) => {
             const event = JSON.parse(line) as StreamEvent;
             attempt = 0;
             if (event.type === 'snapshot') {
-              patchLast(id, (m) => ({ ...m, content: event.content, tools: event.tools, error: event.error }));
+              patchLast(id, (m) => ({ ...m, content: event.content, tools: event.tools, actions: event.actions ?? [], error: event.error }));
+            } else if (event.type === 'action') {
+              patchLast(id, (m) => ({ ...m, actions: [...m.actions, event.action] }));
             } else if (event.type === 'text') {
               patchLast(id, (m) => ({ ...m, content: m.content + event.text }));
             } else if (event.type === 'tool') {
@@ -238,8 +272,8 @@ export const useAssistantChat = (username: string | null) => {
     const before = messages;
     setMessages([
       ...before,
-      { id: -2, role: 'user', content: question, tools: [], error: null, pending: false },
-      { id: -1, role: 'assistant', content: '', tools: [], error: null, pending: true },
+      { id: -2, role: 'user', content: question, tools: [], actions: [], error: null, pending: false },
+      { id: -1, role: 'assistant', content: '', tools: [], actions: [], error: null, pending: true },
     ]);
     setStreaming(true);
     try {
@@ -289,6 +323,25 @@ export const useAssistantChat = (username: string | null) => {
     }
   };
 
+  /** Confirms (the server applies it) or dismisses a proposed shelf change. */
+  const decide = async (actionId: string, decision: 'confirm' | 'dismiss') => {
+    const id = activeRef.current;
+    if (!id) return;
+    try {
+      const { data } = await http.post<{ action: ShelfAction }>(End_Points.Ai_Action_Endpoint(id, actionId), { decision });
+      if (activeRef.current !== id) return;
+      setMessages((previous) =>
+        previous.map((m) =>
+          m.actions.some((a) => a.id === actionId)
+            ? { ...m, actions: m.actions.map((a) => (a.id === actionId ? data.action : a)) }
+            : m,
+        ),
+      );
+    } catch (error) {
+      setAlert({ open: true, message: apiMessage(error), type: 'error' });
+    }
+  };
+
   /** Deletes several conversations at once. */
   const removeMany = async (ids: string[]) => {
     try {
@@ -302,5 +355,5 @@ export const useAssistantChat = (username: string | null) => {
     }
   };
 
-  return { conversations, activeId, messages, streaming, opening, send, stop, reset, open, remove, removeMany };
+  return { conversations, activeId, messages, streaming, opening, send, stop, reset, open, remove, removeMany, decide };
 };

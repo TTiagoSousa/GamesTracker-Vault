@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ChatTool } from '../repositories/ai-chat-repository';
 import { ChatEvent } from './streamChat';
+import { ShelfAction } from './shelfActions';
 
 /** What a browser following an answer receives, one JSON line at a time. */
 export type RunEvent =
@@ -10,6 +11,7 @@ export type RunEvent =
       type: 'snapshot';
       content: string;
       tools: ChatTool[];
+      actions: ShelfAction[];
       error: string | null;
     }
   | { type: 'done' };
@@ -21,6 +23,7 @@ export type RunEvent =
 export class ChatRun {
   content = '';
   tools: ChatTool[] = [];
+  actions: ShelfAction[] = [];
   error: string | null = null;
   // The error already went out as an event (it isn't sent again at the end)
   private errorSent = false;
@@ -37,6 +40,8 @@ export class ChatRun {
     if (event.type === 'text') this.content += event.text;
     else if (event.type === 'tool') {
       this.tools.push({ name: event.name, query: event.query });
+    } else if (event.type === 'action') {
+      this.actions.push(event.action);
     } else if (event.type === 'error') {
       this.error = event.message;
       this.errorSent = true;
@@ -53,6 +58,7 @@ export class ChatRun {
       type: 'snapshot',
       content: this.content,
       tools: this.tools,
+      actions: this.actions,
       error: this.error,
     };
   }

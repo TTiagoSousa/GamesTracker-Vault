@@ -7,6 +7,7 @@ import { useAssistantChat } from '../../../Hooks/Ai/useAssistantChat';
 import Ai_Card from '../../../Components/Ai_Card/Ai_Card';
 import Markdown from '../../../Components/Markdown/Markdown';
 import Conversation_List from './Conversation_List';
+import Shelf_Action_Card from './Shelf_Action_Card';
 import * as Icon from '../../../Imports/icons';
 import './Assistant.scss';
 
@@ -38,15 +39,25 @@ const Assistant = () => {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   // Only follows the reply down if the user was already at the bottom
   const stickRef = useRef(true);
+  // The scroll the page makes itself; its event arrives later and isn't the user's
+  const autoScrollRef = useRef(false);
 
   useEffect(() => {
     const list = listRef.current;
-    if (list && stickRef.current) list.scrollTop = list.scrollHeight;
+    if (list && stickRef.current && list.scrollHeight - list.scrollTop - list.clientHeight > 1) {
+      autoScrollRef.current = true;
+      list.scrollTop = list.scrollHeight;
+    }
   }, [messages]);
 
   const onScroll = () => {
     const list = listRef.current;
-    if (list) stickRef.current = list.scrollHeight - list.scrollTop - list.clientHeight < 80;
+    if (!list) return;
+    if (autoScrollRef.current) {
+      autoScrollRef.current = false;
+      return;
+    }
+    stickRef.current = list.scrollHeight - list.scrollTop - list.clientHeight < 80;
   };
 
   const ask = (text: string) => {
@@ -172,6 +183,13 @@ const Assistant = () => {
                         message.content ? <Markdown text={message.content} /> : !message.error && <p className='Assistant_Thinking'>{t('thinking')}</p>
                       ) : (
                         <p className='Assistant_User_Text'>{message.content}</p>
+                      )}
+                      {message.actions.length > 0 && (
+                        <div className='Assistant_Actions'>
+                          {message.actions.map((action) => (
+                            <Shelf_Action_Card key={action.id} action={action} onDecide={chat.decide} />
+                          ))}
+                        </div>
                       )}
                       {message.error && <p className='Assistant_Message_Error'>{errorText(message.error)}</p>}
                     </div>

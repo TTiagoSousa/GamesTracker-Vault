@@ -34,6 +34,27 @@
     "confirmMany_one": "Apagar {{count}} conversa? Não dá para desfazer.",
     "confirmMany_other": "Apagar {{count}} conversas? Não dá para desfazer."
   },
+  "actions": {
+    "add": "Adicionar à estante",
+    "change": "Mudar na estante",
+    "remove": "Tirar da estante",
+    "fields": {
+      "status": "Estado",
+      "rating": "Nota",
+      "hoursPlayed": "Horas",
+      "platform": "Plataforma"
+    },
+    "empty": "—",
+    "ratingValue": "{{value}}/10",
+    "hoursValue": "{{value}} h",
+    "confirm": "Confirmar",
+    "confirming": "A guardar…",
+    "dismiss": "Ignorar",
+    "done": "Feito: a estante foi atualizada.",
+    "removed": "Feito: saiu da estante.",
+    "dismissed": "Ignoraste esta proposta.",
+    "failed": "Não foi possível mudar a estante."
+  },
   "errors": {
     "generic": "O assistente não conseguiu responder. Tenta outra vez.",
     "network": "Perdeu-se a ligação ao servidor a meio da resposta. Tenta outra vez.",
