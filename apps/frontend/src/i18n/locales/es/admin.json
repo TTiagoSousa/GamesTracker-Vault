@@ -90,5 +90,52 @@
     "download": "Descargar",
     "delete": "Borrar",
     "confirmDelete": "Borrar copia"
+  },
+  "prices": {
+    "title": "Precios",
+    "description": "Precios de los juegos y alertas de bajada para quien sigue un juego. Sin clave, usa CheapShark; con una clave gratuita de IsThereAnyDeal, tienes decenas de tiendas en la moneda de tu país.",
+    "provider": {
+      "itad": "IsThereAnyDeal",
+      "cheapshark": "CheapShark (sin clave)",
+      "off": "Desactivados"
+    },
+    "enabled": "Mostrar precios y enviar alertas",
+    "country": "País",
+    "countryHint": "Decide las tiendas y la moneda ({{currency}}).",
+    "countryCheapShark": "CheapShark siempre muestra tiendas de PC en dólares estadounidenses. El país cuenta cuando añadas la clave de IsThereAnyDeal.",
+    "every": "Comprobar los juegos seguidos",
+    "hours_one": "Cada hora",
+    "hours_other": "Cada {{count}} horas",
+    "everyHint": "Incluye las listas “Para jugar” de todos. Las alertas salen en esta comprobación.",
+    "checkNow": "Comprobar ahora",
+    "checking": "Comprobando…",
+    "lastCheck": "Última comprobación: {{date}}",
+    "neverChecked": "Aún no se ha hecho ninguna comprobación.",
+    "next": "Próxima: {{date}}",
+    "lastError": "La última comprobación falló: {{error}}",
+    "checked": "Precios comprobados.",
+    "settingsSaved": "Ajustes de precios guardados.",
+    "itadTitle": "Clave de IsThereAnyDeal",
+    "key": "API key",
+    "keyKept": "Guardada (termina en {{hint}}) — déjalo vacío para mantenerla",
+    "saveKey": "Guardar clave",
+    "saving": "Validando…",
+    "test": "Probar",
+    "testing": "Probando…",
+    "removeKey": "Quitar clave",
+    "confirmRemove": "Sí, quitar",
+    "cancel": "Cancelar",
+    "keySaved": "Clave de IsThereAnyDeal guardada.",
+    "keyRemoved": "Clave quitada: los precios pasan a venir de CheapShark.",
+    "testOk": "IsThereAnyDeal aceptó la clave.",
+    "testFail": {
+      "not-configured": "Aún no hay clave guardada.",
+      "unreadable": "La clave guardada ya no se puede leer. Introduce la clave otra vez.",
+      "rejected": "IsThereAnyDeal rechazó la clave.",
+      "unreachable": "No se pudo contactar con IsThereAnyDeal."
+    },
+    "unreadable": "La clave guardada ya no se puede leer (la TOKEN_ENCRYPTION_KEY cambió). Hasta que la introduzcas otra vez, los precios vienen de CheapShark.",
+    "keyHelp": "Registra una app gratuita en IsThereAnyDeal y copia su “API key”.",
+    "keyHelpLink": "Abrir mis apps"
   }
 }

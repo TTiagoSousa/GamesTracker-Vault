@@ -53,6 +53,24 @@
     display: flex;
     gap: 4px;
 
+    // New price alerts, on the Prices tab
+    .Top_Nav_Badge{
+      display: inline-grid;
+      place-items: center;
+      min-width: 18px;
+      height: 18px;
+      margin-left: 6px;
+      padding: 0 5px;
+      box-sizing: border-box;
+      border-radius: 9px;
+      background: var(--accent);
+      color: var(--on-accent);
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 1;
+      vertical-align: 1px;
+    }
+
     .Top_Nav_Tab{
       position: relative;
       padding: 8px 14px;

@@ -7,4 +7,5 @@ export { default as Game } from '../Pages/Private/Game/Game';
 export { default as Versions } from '../Pages/Private/Admin/Versions/Versions';
 export { default as Stats } from '../Pages/Private/Stats/Stats';
 export { default as Assistant } from '../Pages/Private/Assistant/Assistant';
+export { default as Prices } from '../Pages/Private/Prices/Prices';
 export { default as Help } from '../Pages/Private/Help/Help';

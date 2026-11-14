@@ -15,7 +15,7 @@
     box-sizing: border-box;
     padding-bottom: env(safe-area-inset-bottom);
     display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-columns: repeat(6, minmax(0, 1fr));
     background: var(--surface);
     border-top: 1px solid var(--line-strong);
     font-family: Font.$font_family_sans;
@@ -43,13 +43,26 @@
   }
 
   .Bottom_Nav_Icon{
-    width: 48px;
+    position: relative;
+    width: 44px;
     height: 28px;
     display: grid;
     place-items: center;
     border-radius: var(--ctrl-radius);
 
     svg{ width: 20px; height: 20px; }
+  }
+
+  // New price alerts
+  .Bottom_Nav_Badge{
+    position: absolute;
+    top: 2px;
+    right: 9px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 0 2px var(--surface);
   }
 
   .Bottom_Nav_Label{

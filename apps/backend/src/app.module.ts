@@ -12,6 +12,7 @@ import { LibraryModule } from './library/library.module';
 import { AiModule } from './ai/ai.module';
 import { ApiTokensModule } from './api-tokens/api-tokens.module';
 import { BackupsModule } from './backups/backups.module';
+import { PricesModule } from './prices/prices.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { BackupsModule } from './backups/backups.module';
     AiModule,
     ApiTokensModule,
     BackupsModule,
+    PricesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

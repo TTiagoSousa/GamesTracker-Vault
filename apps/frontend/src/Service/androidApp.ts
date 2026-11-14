@@ -9,11 +9,28 @@ interface AndroidBridge {
   version(): string;
   versionCode?: () => number;
   checkUpdate?: () => void;
+  // Since 1.2.0: price alerts as phone notifications. The app keeps a read-only token
+  // and asks the server for new notifications in the background.
+  enableAlerts?: (apiUrl: string, token: string, tokenId: string, afterId: number) => void;
+  disableAlerts?: () => void;
+  // JSON of AndroidAlertsStatus
+  alertsStatus?: () => string;
+  // Opens the phone's notification settings for the app
+  openNotificationSettings?: () => void;
+}
+
+export interface AndroidAlertsStatus {
+  enabled: boolean;
+  tokenId: string | null;
+  // Whether Android lets the app show notifications (Android 13+ asks the user)
+  allowed: boolean;
 }
 
 declare global {
   interface Window {
     GameTrackerApp?: AndroidBridge;
+    // Called by the app when alerts were turned on or off (after the permission prompt)
+    onAlertsChanged?: (status: string) => void;
   }
 }
 

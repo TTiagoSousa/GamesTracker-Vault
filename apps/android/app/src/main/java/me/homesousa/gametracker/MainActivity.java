@@ -6,6 +6,8 @@ import android.app.AlertDialog;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.provider.Settings;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
@@ -47,6 +49,7 @@ public class MainActivity extends Activity {
     private static final String OFFLINE_PAGE = "file:///android_asset/offline.html";
     // The app's background colour (night): behind the system bars
     private static final int BACKGROUND = Color.parseColor("#0E0E12");
+    private static final int REQUEST_NOTIFICATIONS = 31;
 
     private WebView webView;
     private SharedPreferences prefs;
@@ -94,7 +97,7 @@ public class MainActivity extends Activity {
 
         if (savedInstanceState != null) {
             webView.restoreState(savedInstanceState);
-        } else {
+        } else if (!openFromAlert(getIntent())) {
             openStart();
         }
 
@@ -107,6 +110,41 @@ public class MainActivity extends Activity {
     private void openStart() {
         String server = prefs.getString(KEY_SERVER, null);
         webView.loadUrl(server != null ? server + "/" : SETUP_PAGE);
+    }
+
+    /** A tapped price alert: opens the game's page on the server. */
+    private boolean openFromAlert(Intent intent) {
+        String server = prefs.getString(KEY_SERVER, null);
+        String path = intent != null ? Alerts.safePath(intent.getStringExtra(Alerts.EXTRA_PATH)) : null;
+        if (server == null || path == null) return false;
+        webView.loadUrl(server + path);
+        return true;
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        openFromAlert(intent);
+    }
+
+    /** Tells the page whether alerts are on (after the permission prompt, for instance). */
+    private void reportAlerts() {
+        String status = Alerts.status(this);
+        webView.evaluateJavascript("window.onAlertsChanged && window.onAlertsChanged(" + JSONObject.quote(status) + ")", null);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] results) {
+        super.onRequestPermissionsResult(requestCode, permissions, results);
+        if (requestCode == REQUEST_NOTIFICATIONS) reportAlerts();
+    }
+
+    /** Whether the page showing now is the saved server's (the only one that may use alerts). */
+    private boolean onServerPage() {
+        String url = webView.getUrl();
+        String host = serverHost();
+        return url != null && host != null && host.equals(Uri.parse(url).getHost());
     }
 
     private String serverHost() {
@@ -207,6 +245,8 @@ public class MainActivity extends Activity {
         public void changeServer() {
             runOnUiThread(() -> {
                 prefs.edit().remove(KEY_SERVER).apply();
+                // The alerts were for that server
+                Alerts.disable(MainActivity.this);
                 webView.clearHistory();
                 webView.loadUrl(SETUP_PAGE);
             });
@@ -228,6 +268,56 @@ public class MainActivity extends Activity {
         @JavascriptInterface
         public int versionCode() {
             return BuildConfig.VERSION_CODE;
+        }
+
+        /**
+         * Prices page: turns price alerts on with the read-only token the server just
+         * created. The API address must be on the saved server, so the token never goes
+         * anywhere else. Android 13+ asks for permission first; the page hears back
+         * through window.onAlertsChanged.
+         */
+        @JavascriptInterface
+        public void enableAlerts(String apiUrl, String token, String tokenId, double afterId) {
+            runOnUiThread(() -> {
+                if (!onServerPage()) return;
+                Uri api = Uri.parse(apiUrl);
+                if (api.getHost() == null || !api.getHost().equals(serverHost())) return;
+                Alerts.enable(MainActivity.this, apiUrl, token, tokenId, (long) afterId);
+                if (Alerts.newerThanTiramisu()
+                        && checkSelfPermission("android.permission.POST_NOTIFICATIONS") != PackageManager.PERMISSION_GRANTED) {
+                    requestPermissions(new String[] {"android.permission.POST_NOTIFICATIONS"}, REQUEST_NOTIFICATIONS);
+                } else {
+                    reportAlerts();
+                }
+            });
+        }
+
+        @JavascriptInterface
+        public void disableAlerts() {
+            runOnUiThread(() -> {
+                if (!onServerPage()) return;
+                Alerts.disable(MainActivity.this);
+                reportAlerts();
+            });
+        }
+
+        @JavascriptInterface
+        public String alertsStatus() {
+            return Alerts.status(MainActivity.this);
+        }
+
+        /** When Android blocks the notifications: the app's notification settings. */
+        @JavascriptInterface
+        public void openNotificationSettings() {
+            runOnUiThread(() -> {
+                Intent intent = new Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
+                        .putExtra(Settings.EXTRA_APP_PACKAGE, getPackageName());
+                try {
+                    startActivity(intent);
+                } catch (ActivityNotFoundException ignored) {
+                    // no settings screen for this
+                }
+            });
         }
 
         /** "Check for updates" in Help: always reports the result. */

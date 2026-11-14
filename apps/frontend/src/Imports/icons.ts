@@ -21,3 +21,5 @@ export { default as Send } from '../Assets/Icons/Send/Send';
 export { default as Trash } from '../Assets/Icons/Trash/Trash';
 export { default as Chart } from '../Assets/Icons/Chart/Chart';
 export { default as History } from '../Assets/Icons/History/History';
+export { default as Tag } from '../Assets/Icons/Tag/Tag';
+export { default as Bell } from '../Assets/Icons/Bell/Bell';

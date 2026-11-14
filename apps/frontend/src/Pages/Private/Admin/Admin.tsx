@@ -8,6 +8,7 @@ import Admin_Create_User_Modal from '../../../Components/Modals/Admin_Create_Use
 import Version_Card from '../../../Components/Version_Card/Version_Card';
 import Igdb_Card from '../../../Components/Igdb_Card/Igdb_Card';
 import Backups_Card from '../../../Components/Backups_Card/Backups_Card';
+import Prices_Card from '../../../Components/Prices_Card/Prices_Card';
 import { dateLocale } from '../../../i18n';
 import * as Icon from '../../../Imports/icons';
 
@@ -45,6 +46,8 @@ const Admin = () => {
 
       {/* IGDB credentials, used by the game search across the whole install */}
       <Igdb_Card />
+
+      <Prices_Card />
 
       {/* Database backups: now, on a schedule, download and delete */}
       <Backups_Card />

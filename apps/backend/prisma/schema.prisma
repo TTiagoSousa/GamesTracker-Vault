@@ -23,6 +23,8 @@ model User {
   libraryEntries LibraryEntry[]
   aiSettings     AiSettings?
   aiChats        AiConversation[]
+  priceWatches   PriceWatch[]
+  notifications  Notification[]
   apiTokens      ApiToken[]
 
   @@index([username])
@@ -32,6 +34,8 @@ model User {
 // key belongs to the whole installation, not to each user.
 enum IntegrationProvider {
   IGDB
+  // IsThereAnyDeal: prices; only the API key is used (secret), clientId stays empty
+  ITAD
 }
 
 model Integration {
@@ -76,9 +80,18 @@ model Game {
   ttbCompletionist Float?
   // When genres and times were fetched from IGDB (null = never)
   factsCheckedAt   DateTime?
+  // Where the game is found by the price services: the Steam appid (from IGDB) and
+  // each service's own id. Looked up once; priceIdsCheckedAt says when
+  steamAppId        Int?
+  itadId            String?
+  cheapSharkId      String?
+  priceIdsCheckedAt DateTime?
   updatedAt        DateTime  @updatedAt
 
   libraryEntries LibraryEntry[]
+  priceWatches   PriceWatch[]
+  prices         GamePrice[]
+  pricePoints    PricePoint[]
 }
 
 model LibraryEntry {
@@ -160,6 +173,104 @@ model AiMessage {
   createdAt      DateTime       @default(now())
 
   @@index([conversationId, id])
+}
+
+// --- Prices -----------------------------------------------------------------------------
+
+// Where prices come from: IsThereAnyDeal (with a key, dozens of shops, local currency) or
+// CheapShark (no key, PC shops, US dollars).
+enum PriceProvider {
+  ITAD
+  CHEAPSHARK
+}
+
+// The installation's price settings: a single row (id 1), created with the defaults the
+// first time it is read.
+model PriceSettings {
+  id          Int       @id @default(1)
+  enabled     Boolean   @default(true)
+  // ISO 3166-1 alpha-2: decides the shops and the currency (IsThereAnyDeal only)
+  country     String    @default("PT")
+  // Hours between the automatic checks of the watched games
+  everyHours  Int       @default(6)
+  lastCheckAt DateTime?
+  lastError   String?
+  updatedAt   DateTime  @updatedAt
+}
+
+// The latest prices of a game in a country: the best one and every shop's.
+model GamePrice {
+  gameId     Int
+  game       Game          @relation(fields: [gameId], references: [igdbId], onDelete: Cascade)
+  country    String
+  provider   PriceProvider
+  currency   String
+  // Best price now (null = not sold anywhere covered)
+  price      Float?
+  regular    Float?
+  cut        Int?
+  shop       String?
+  url        String?
+  // The lowest price ever recorded by the service
+  lowest     Float?
+  lowestShop String?
+  lowestAt   DateTime?
+  // Every shop: [{ shop, price, regular, cut, url, expiry }], cheapest first
+  deals      Json
+  checkedAt  DateTime
+
+  @@id([gameId, country])
+}
+
+// The best price of a game on each day it was checked, for the chart on the game's page.
+model PricePoint {
+  gameId   Int
+  game     Game     @relation(fields: [gameId], references: [igdbId], onDelete: Cascade)
+  country  String
+  day      DateTime @db.Date
+  price    Float
+  currency String
+
+  @@id([gameId, country, day])
+}
+
+// A game the user follows the price of (favourites). An alert is sent when the price
+// reaches the target, or when it goes on sale if there's no target.
+model PriceWatch {
+  id            String   @id @default(uuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  gameId        Int
+  game          Game     @relation(fields: [gameId], references: [igdbId], onDelete: Cascade)
+  targetPrice   Float?
+  // The price of the last alert: the same deal isn't announced twice, and a lower one is.
+  // Cleared when the deal ends, so the next one is announced again.
+  notifiedPrice Float?
+  createdAt     DateTime @default(now())
+
+  @@unique([userId, gameId])
+}
+
+// --- Notifications ------------------------------------------------------------------------
+
+enum NotificationKind {
+  PRICE_DROP
+}
+
+// Something to tell the user: shown in the site and fetched by the Android app, which
+// turns it into a phone notification. The data column holds the facts (game, price, shop…) and each
+// client words it in its own language.
+model Notification {
+  id        Int              @id @default(autoincrement())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kind      NotificationKind
+  gameId    Int?
+  data      Json
+  readAt    DateTime?
+  createdAt DateTime         @default(now())
+
+  @@index([userId, id])
 }
 
 // --- API -------------------------------------------------------------------------------

@@ -1,0 +1,92 @@
+{
+  "title": "Prices",
+  "intro": "Follow the price of the games you want and get an alert when they drop: on the site and, with the Android app, on your phone.",
+  "checkedEvery_one": "Checked every hour",
+  "checkedEvery_other": "Checked every {{count}} hours",
+  "lastCheck": "Last checked: {{date}}",
+  "loading": "Loading…",
+  "off": "Prices are turned off on this installation.",
+  "offAdmin": "Turn on in Admin",
+  "free": "Free",
+  "lowestNow": "Lowest ever",
+  "lowestWas": "Lowest: {{price}}",
+  "lowest": "Lowest ever",
+  "atShop": "at {{shop}}",
+  "notSold": "Not sold at the covered shops",
+  "searching": "Still looking at the shops",
+  "follow": "Follow price",
+  "unfollow": "Stop following",
+  "followed": "You’re following the price of {{name}}.",
+  "alertSaved": "Alert for {{name}} saved.",
+  "source": {
+    "from": "Prices from",
+    "itad": ", in {{currency}}, from dozens of shops.",
+    "cheapshark": ", in US dollars, PC shops only."
+  },
+  "target": {
+    "anySale": "Any sale",
+    "below": "Below {{price}}",
+    "reached": "Target reached",
+    "onSale": "On sale"
+  },
+  "editor": {
+    "when": "Alert me",
+    "anySale": "when it’s on sale",
+    "below": "when it costs up to",
+    "target": "Target price",
+    "follow": "Follow",
+    "save": "Save",
+    "cancel": "Cancel"
+  },
+  "alerts": {
+    "title": "Alerts",
+    "empty": "No alerts yet. When a game you follow drops in price, it shows up here."
+  },
+  "alert": {
+    "drop": "dropped to {{price}}",
+    "dropAt": "dropped to {{price}} at {{shop}}",
+    "lowest": "lowest ever",
+    "open": "Open the shop",
+    "clear": "Clear alerts"
+  },
+  "phone": {
+    "title": "Alerts on your phone",
+    "browser": "With the Android app, every alert arrives as a notification.",
+    "getApp": "Get the app",
+    "oldApp": "This version of the app can’t receive alerts yet.",
+    "update": "Update the app",
+    "on": "On: this phone gets a notification for every alert.",
+    "off": "Off. Turn on to get alerts as notifications.",
+    "blocked": "Android is blocking the app’s notifications.",
+    "openSettings": "Open settings"
+  },
+  "watching": {
+    "title": "Following",
+    "empty": "You aren’t following any game yet. Use “Follow price” on a game’s page or on your to-play list below."
+  },
+  "backlog": {
+    "title": "On your to-play list",
+    "intro": "Today’s price of the games you have under “To play”.",
+    "empty": "Your to-play list is empty.",
+    "allFollowed": "You already follow the price of every game on your to-play list."
+  },
+  "featured": {
+    "title": "Featured deals",
+    "find": "Find in the Vault"
+  },
+  "game": {
+    "title": "Prices",
+    "notSold": "We couldn’t find this game on sale at the covered shops.",
+    "lowest": "Lowest ever: {{price}}",
+    "allShops": "See all {{count}} shops",
+    "fewerShops": "See fewer shops",
+    "historyLabel": "Best price over time, between {{min}} and {{max}}",
+    "since": "Since {{date}}",
+    "range": "{{min}} to {{max}}",
+    "follow": "Follow price",
+    "followingSale": "Following: alerts on any sale",
+    "followingTarget": "Following: alerts below {{price}}",
+    "change": "Change",
+    "allPrices": "All prices"
+  }
+}

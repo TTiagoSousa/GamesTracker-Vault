@@ -1,0 +1,67 @@
+@use '../../Styles/Fonts.scss' as Font;
+@use '../../Styles/Mixins.scss' as Mixin;
+
+// The prices card reuses the IGDB card's frame and form; these are only its own parts.
+.Prices_Card{
+  .Prices_Card_Check{
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 32px;
+    font-size: 14.5px;
+    font-weight: 600;
+    color: var(--text-main);
+    cursor: pointer;
+
+    input{
+      width: 18px;
+      height: 18px;
+      margin: 0;
+      accent-color: var(--accent);
+    }
+  }
+
+  .Prices_Card_Settings{
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px 16px;
+
+    @media (max-width: 720px){ grid-template-columns: 1fr; }
+
+    label{
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 13.5px;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    select{
+      @include Mixin.Control_Surface;
+      height: 44px;
+      padding: 0 10px;
+      font-size: 14px;
+    }
+
+    small{
+      font-size: 12.5px;
+      font-weight: 500;
+      line-height: 1.45;
+      color: var(--text-faint);
+    }
+  }
+
+  .Prices_Card_Now{
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 16px;
+  }
+
+  .Prices_Card_Subtitle{
+    @include Mixin.Section_Title(15px);
+    margin-top: 6px;
+    color: var(--text-main);
+  }
+}

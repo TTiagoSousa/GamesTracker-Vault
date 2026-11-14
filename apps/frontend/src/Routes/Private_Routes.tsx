@@ -10,6 +10,7 @@ const Private_Routes = () => {
       <Route path='Vault/Search' element={ <Private_Page.Search /> } />
       <Route path='Vault/Game/:id' element={ <Private_Page.Game /> } />
       <Route path='Vault/Stats' element={ <Private_Page.Stats /> } />
+      <Route path='Vault/Prices' element={ <Private_Page.Prices /> } />
       <Route path='Vault/Assistant' element={ <Private_Page.Assistant /> } />
       <Route path='Vault/Help' element={ <Private_Page.Help /> } />
       <Route path='Vault/Settings' element={ <Private_Page.Settings /> } />

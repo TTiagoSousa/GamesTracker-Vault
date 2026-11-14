@@ -8,6 +8,7 @@ import { dateLocale } from '../../../i18n';
 import * as Icon from '../../../Imports/icons';
 import Library_Panel from './Library_Panel';
 import Time_To_Beat from './Time_To_Beat';
+import Game_Prices from './Game_Prices';
 import './Game.scss';
 
 // Summaries longer than this show truncated, with "Read more"
@@ -181,6 +182,8 @@ const Game = () => {
 
         <div className='Game_Side'>
         <Time_To_Beat timeToBeat={game.timeToBeat} yourHours={library.entry?.hoursPlayed ?? null} />
+
+        <Game_Prices key={gameId} gameId={gameId} />
 
         {detailRows.length > 0 && (
           <section className='Game_Details'>

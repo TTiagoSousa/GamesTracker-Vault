@@ -14,6 +14,7 @@ import { Roles } from 'src/auth/decorators/roles.decorator';
 import { Role } from 'src/generated/prisma/client/client';
 import { IntegrationsService } from './integrations.service';
 import { SaveIgdbDto } from './dto/save-igdb.dto';
+import { SaveItadDto } from './dto/save-itad.dto';
 
 // The installation's external service credentials — admins only.
 @Controller('integrations')
@@ -41,5 +42,27 @@ export class IntegrationsController {
   @Delete('igdb')
   removeIgdb() {
     return this.integrationsService.removeIgdb();
+  }
+
+  // IsThereAnyDeal: prices in local currency from dozens of shops
+  @Get('itad')
+  itadStatus() {
+    return this.integrationsService.itadStatus();
+  }
+
+  @Put('itad')
+  saveItad(@Body() dto: SaveItadDto) {
+    return this.integrationsService.saveItad(dto);
+  }
+
+  @Post('itad/test')
+  @HttpCode(200)
+  testItad() {
+    return this.integrationsService.testItad();
+  }
+
+  @Delete('itad')
+  removeItad() {
+    return this.integrationsService.removeItad();
   }
 }

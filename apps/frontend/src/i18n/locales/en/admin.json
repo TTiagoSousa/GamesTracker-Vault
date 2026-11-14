@@ -90,5 +90,52 @@
     "download": "Download",
     "delete": "Delete",
     "confirmDelete": "Delete backup"
+  },
+  "prices": {
+    "title": "Prices",
+    "description": "Game prices, and price-drop alerts for whoever follows a game. Without a key it uses CheapShark; with a free IsThereAnyDeal key you get dozens of shops in your country’s currency.",
+    "provider": {
+      "itad": "IsThereAnyDeal",
+      "cheapshark": "CheapShark (no key)",
+      "off": "Off"
+    },
+    "enabled": "Show prices and send alerts",
+    "country": "Country",
+    "countryHint": "Decides the shops and the currency ({{currency}}).",
+    "countryCheapShark": "CheapShark always shows PC shops in US dollars. The country counts once you add the IsThereAnyDeal key.",
+    "every": "Check followed games",
+    "hours_one": "Every hour",
+    "hours_other": "Every {{count}} hours",
+    "everyHint": "Includes everyone’s “To play” lists. Alerts go out with this check.",
+    "checkNow": "Check now",
+    "checking": "Checking…",
+    "lastCheck": "Last checked: {{date}}",
+    "neverChecked": "No check has run yet.",
+    "next": "Next: {{date}}",
+    "lastError": "The last check failed: {{error}}",
+    "checked": "Prices checked.",
+    "settingsSaved": "Price settings saved.",
+    "itadTitle": "IsThereAnyDeal key",
+    "key": "API key",
+    "keyKept": "Saved (ends in {{hint}}) — leave blank to keep it",
+    "saveKey": "Save key",
+    "saving": "Validating…",
+    "test": "Test",
+    "testing": "Testing…",
+    "removeKey": "Remove key",
+    "confirmRemove": "Yes, remove",
+    "cancel": "Cancel",
+    "keySaved": "IsThereAnyDeal key saved.",
+    "keyRemoved": "Key removed: prices now come from CheapShark.",
+    "testOk": "IsThereAnyDeal accepted the key.",
+    "testFail": {
+      "not-configured": "There’s no key saved yet.",
+      "unreadable": "The saved key can no longer be read. Enter the key again.",
+      "rejected": "IsThereAnyDeal rejected the key.",
+      "unreachable": "Couldn’t reach IsThereAnyDeal."
+    },
+    "unreadable": "The saved key can no longer be read (TOKEN_ENCRYPTION_KEY changed). Until you enter it again, prices come from CheapShark.",
+    "keyHelp": "Register a free app at IsThereAnyDeal and copy its “API key”.",
+    "keyHelpLink": "Open my apps"
   }
 }

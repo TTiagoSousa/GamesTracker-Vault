@@ -6,6 +6,8 @@ import { SaveIgdbDto } from './dto/save-igdb.dto';
 import { getIgdbStatus } from './helpers/getIgdbStatus';
 import { saveIgdbCredentials } from './helpers/saveIgdbCredentials';
 import { testIgdbCredentials } from './helpers/testIgdbCredentials';
+import { SaveItadDto } from './dto/save-itad.dto';
+import { getItadStatus, saveItadKey, testItadKey } from './helpers/itadKey';
 
 @Injectable()
 export class IntegrationsService {
@@ -32,5 +34,25 @@ export class IntegrationsService {
     await this.repository.remove(IntegrationProvider.IGDB);
     this.credentials.invalidate(IntegrationProvider.IGDB);
     return getIgdbStatus(this.repository);
+  }
+
+  itadStatus() {
+    return getItadStatus(this.repository);
+  }
+
+  async saveItad(dto: SaveItadDto) {
+    const status = await saveItadKey(dto.key, this.repository);
+    this.credentials.invalidate(IntegrationProvider.ITAD);
+    return status;
+  }
+
+  testItad() {
+    return testItadKey(this.repository);
+  }
+
+  async removeItad() {
+    await this.repository.remove(IntegrationProvider.ITAD);
+    this.credentials.invalidate(IntegrationProvider.ITAD);
+    return getItadStatus(this.repository);
   }
 }

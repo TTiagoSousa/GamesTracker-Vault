@@ -4,7 +4,8 @@
     "settings": "Settings",
     "admin": "Admin",
     "stats": "Stats",
-    "assistant": "Assistant"
+    "assistant": "Assistant",
+    "prices": "Prices"
   },
   "sidebar": {
     "menu": "Menu",
@@ -17,5 +18,7 @@
     "help": "Help",
     "androidApp": "Android app",
     "changeServer": "Change server"
-  }
+  },
+  "unreadAlerts_one": "{{count}} new alert",
+  "unreadAlerts_other": "{{count}} new alerts"
 }

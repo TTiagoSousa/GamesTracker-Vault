@@ -13,4 +13,10 @@
     <string name="compat_title">Versions do not match</string>
     <string name="compat_update_app">This app is %1$s and the server is %2$s. Update the app (Help → Android app) so everything works.</string>
     <string name="compat_update_server">This app is %1$s and the server is %2$s. Ask the administrator to update the server so everything works.</string>
+    <string name="alerts_channel">Price alerts</string>
+    <string name="alerts_channel_description">When a game you follow drops in price</string>
+    <string name="alert_drop">Now %1$s at %2$s</string>
+    <string name="alert_drop_no_shop">Now %1$s</string>
+    <string name="alert_cut">%1$d%% off</string>
+    <string name="alert_lowest">Lowest price ever</string>
 </resources>

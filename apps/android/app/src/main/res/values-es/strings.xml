@@ -12,4 +12,10 @@
     <string name="compat_title">Las versiones no coinciden</string>
     <string name="compat_update_app">Esta app es la %1$s y el servidor está en la %2$s. Actualiza la app (Ayuda → App Android) para que todo funcione.</string>
     <string name="compat_update_server">Esta app es la %1$s y el servidor está en la %2$s. Pide al administrador que actualice el servidor para que todo funcione.</string>
+    <string name="alerts_channel">Alertas de precio</string>
+    <string name="alerts_channel_description">Cuando un juego que sigues baja de precio</string>
+    <string name="alert_drop">Ahora a %1$s en %2$s</string>
+    <string name="alert_drop_no_shop">Ahora a %1$s</string>
+    <string name="alert_cut">%1$d%% de descuento</string>
+    <string name="alert_lowest">Mínimo histórico</string>
 </resources>

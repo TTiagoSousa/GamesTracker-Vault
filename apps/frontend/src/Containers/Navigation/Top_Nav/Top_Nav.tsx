@@ -5,6 +5,7 @@ import { menuItems } from './Menu_Items';
 import { useTheme } from '../../../Contexts/ThemeContext';
 import { useAuth } from '../../../Contexts/Auth_Context';
 import { androidBridge } from '../../../Service/androidApp';
+import { useUnreadAlerts } from '../../../Hooks/Prices/useNotifications';
 import * as Icon from '../../../Imports/icons';
 import './Top_Nav.scss';
 
@@ -18,6 +19,8 @@ const Top_Nav = () => {
   const { isDark, handleDarkMode, handleLightMode } = useTheme();
   const { username, role, logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
+  // New price alerts: a count on the Prices tab
+  const unread = useUnreadAlerts();
   const menuRef = useRef<HTMLDivElement>(null);
   const barRef = useRef<HTMLElement>(null);
 
@@ -89,6 +92,9 @@ const Top_Nav = () => {
               aria-current={activeId === item.id ? 'page' : undefined}
             >
               {t(item.labelKey)}
+              {item.id === 'prices' && unread > 0 && (
+                <span className='Top_Nav_Badge' aria-label={t('unreadAlerts', { count: unread })}>{unread > 9 ? '9+' : unread}</span>
+              )}
             </Link>
           ))}
         </nav>

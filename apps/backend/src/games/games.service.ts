@@ -7,6 +7,7 @@ import { getGameDetail } from './helpers/getGameDetail';
 import { getGameSummary } from './helpers/getGameSummary';
 import { getGameFacts } from './helpers/getGameFacts';
 import { getRandomGame } from './helpers/getRandomGame';
+import { getSteamAppIds } from './helpers/getSteamAppIds';
 
 @Injectable()
 export class GamesService implements OnApplicationBootstrap {
@@ -39,6 +40,11 @@ export class GamesService implements OnApplicationBootstrap {
   // Genres and average times of several games, for the stats
   facts(ids: number[]) {
     return getGameFacts(ids, this.igdb);
+  }
+
+  // The Steam appid of each game (only those on Steam), for the price services
+  steamAppIds(ids: number[]) {
+    return getSteamAppIds(ids, this.igdb);
   }
 
   // A random well-rated game, excluding the ones the user already has

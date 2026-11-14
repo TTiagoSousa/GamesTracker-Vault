@@ -1,0 +1,92 @@
+{
+  "title": "Preços",
+  "intro": "Segue o preço dos jogos que queres e recebe um aviso quando baixarem: no site e, com a app Android, no telemóvel.",
+  "checkedEvery_one": "Verificados a cada hora",
+  "checkedEvery_other": "Verificados a cada {{count}} horas",
+  "lastCheck": "Última verificação: {{date}}",
+  "loading": "A carregar…",
+  "off": "Os preços estão desligados nesta instalação.",
+  "offAdmin": "Ligar em Admin",
+  "free": "Grátis",
+  "lowestNow": "Mínimo de sempre",
+  "lowestWas": "Mínimo: {{price}}",
+  "lowest": "Mínimo de sempre",
+  "atShop": "na {{shop}}",
+  "notSold": "Não está à venda nas lojas cobertas",
+  "searching": "Ainda à procura nas lojas",
+  "follow": "Seguir preço",
+  "unfollow": "Deixar de seguir",
+  "followed": "Estás a seguir o preço de {{name}}.",
+  "alertSaved": "Alerta de {{name}} guardado.",
+  "source": {
+    "from": "Preços da",
+    "itad": ", em {{currency}}, de dezenas de lojas.",
+    "cheapshark": ", em dólares americanos, só lojas de PC."
+  },
+  "target": {
+    "anySale": "Qualquer promoção",
+    "below": "Abaixo de {{price}}",
+    "reached": "Chegou ao alvo",
+    "onSale": "Em promoção"
+  },
+  "editor": {
+    "when": "Avisar-me",
+    "anySale": "quando estiver em promoção",
+    "below": "quando custar até",
+    "target": "Preço alvo",
+    "follow": "Seguir",
+    "save": "Guardar",
+    "cancel": "Cancelar"
+  },
+  "alerts": {
+    "title": "Alertas",
+    "empty": "Ainda não há alertas. Quando um jogo que segues baixar de preço, aparece aqui."
+  },
+  "alert": {
+    "drop": "baixou para {{price}}",
+    "dropAt": "baixou para {{price}} na {{shop}}",
+    "lowest": "mínimo de sempre",
+    "open": "Ver na loja",
+    "clear": "Limpar alertas"
+  },
+  "phone": {
+    "title": "Avisos no telemóvel",
+    "browser": "Com a app Android, cada alerta chega como notificação.",
+    "getApp": "Instalar a app",
+    "oldApp": "Esta versão da app ainda não recebe avisos.",
+    "update": "Atualizar a app",
+    "on": "Ligados: este telemóvel recebe uma notificação por cada alerta.",
+    "off": "Desligados. Liga para receber os alertas como notificações.",
+    "blocked": "O Android está a bloquear as notificações da app.",
+    "openSettings": "Abrir definições"
+  },
+  "watching": {
+    "title": "A seguir",
+    "empty": "Ainda não segues nenhum jogo. Usa “Seguir preço” na página de um jogo ou na tua lista para jogar, aqui em baixo."
+  },
+  "backlog": {
+    "title": "Na tua lista para jogar",
+    "intro": "O preço de hoje dos jogos que tens em “Para jogar”.",
+    "empty": "A tua lista para jogar está vazia.",
+    "allFollowed": "Já segues o preço de todos os jogos da tua lista para jogar."
+  },
+  "featured": {
+    "title": "Promoções em destaque",
+    "find": "Procurar no Vault"
+  },
+  "game": {
+    "title": "Preços",
+    "notSold": "Não encontrámos este jogo à venda nas lojas cobertas.",
+    "lowest": "Mínimo de sempre: {{price}}",
+    "allShops": "Ver as {{count}} lojas",
+    "fewerShops": "Ver menos lojas",
+    "historyLabel": "Evolução do melhor preço, entre {{min}} e {{max}}",
+    "since": "Desde {{date}}",
+    "range": "{{min}} a {{max}}",
+    "follow": "Seguir preço",
+    "followingSale": "A seguir: avisa em qualquer promoção",
+    "followingTarget": "A seguir: avisa abaixo de {{price}}",
+    "change": "Alterar",
+    "allPrices": "Todos os preços"
+  }
+}

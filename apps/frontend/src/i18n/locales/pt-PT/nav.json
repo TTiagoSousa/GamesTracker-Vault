@@ -4,7 +4,8 @@
     "settings": "Definições",
     "admin": "Admin",
     "stats": "Estatísticas",
-    "assistant": "Assistente"
+    "assistant": "Assistente",
+    "prices": "Preços"
   },
   "sidebar": {
     "menu": "Menu",
@@ -17,5 +18,7 @@
     "help": "Ajuda",
     "androidApp": "App Android",
     "changeServer": "Mudar de servidor"
-  }
+  },
+  "unreadAlerts_one": "{{count}} alerta novo",
+  "unreadAlerts_other": "{{count}} alertas novos"
 }
